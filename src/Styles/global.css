@@ -1,0 +1,8 @@
+:root {
+    --full-size: calc(100% - 56px);
+}
+
+body {
+    font-family: 'Montserrat', sans-serif;
+    color: black;
+}
