@@ -58,7 +58,7 @@ export const useMovementGymUser = () => {
                     'page': data.page,
                     'size': data.size,
                     'sort': data.sort,
-                    // 'active': data.active
+                    'active': data.active
                 }
             });
             return { data: response.data, status: response.status };

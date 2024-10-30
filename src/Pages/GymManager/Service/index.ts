@@ -57,6 +57,7 @@ export const useGym = () => {
                 timezone: data.timezone,
                 customer: data.customer,
                 gymOpeningHoursRequest: data.gymOpeningHoursRequest,
+                channelRequest: data.channelRequest
             })
 
             return { data: response.data, status: response.status };
@@ -106,5 +107,19 @@ export const useGym = () => {
         }
     }
 
-    return { handleEditGymService, handleListAllGyms, handleDeleteGymService, handleCreateGymService };
+    const handleActivateGymService = async (gymExternalId: string) =>{
+        try {
+            const response = await api.put(`/v1/gym/reactivate-gym/${gymExternalId}`)
+            return { data: response.data, status: response.status };
+        } catch (error: any) {
+            if (error.response) {
+                toast.error(`${error.response.data.message}`);
+            } else {
+                toast.error(`Não foi possível ativar a academia.`);
+            } 
+        }
+
+    }
+
+    return { handleEditGymService, handleListAllGyms, handleDeleteGymService, handleCreateGymService, handleActivateGymService };
 }

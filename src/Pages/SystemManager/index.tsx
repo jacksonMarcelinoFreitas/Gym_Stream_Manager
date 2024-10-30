@@ -21,7 +21,7 @@ import { Button } from "primereact/button";
 import { Dialog } from "primereact/dialog";
 import { toast } from "react-toastify";
 import React from "react";
-import { ToggleButton } from "primereact/togglebutton";
+import { Tag } from "primereact/tag";
 
 const emptyGymUser: IUserGym = {
     userGymExternalId: '',
@@ -87,7 +87,7 @@ export function SystemAdmin() {
                 customer: gymSelected,
                 page: lazyParams.page, 
                 size: lazyParams.rows, 
-                sort: 'name,ASC', 
+                sort: 'name,ASC',
                 startTime: date.startTime, 
                 finishTime: date.finishTime
             });
@@ -105,8 +105,8 @@ export function SystemAdmin() {
             const { data } = await handleListAllGyms({
                 page: 0, 
                 size: 1000, 
-                sort: 'name,ASC'
-                // active: true
+                sort: 'name,ASC',
+                active: true
             })
 
             setDataGyms(data.content)
@@ -285,7 +285,7 @@ const gymOptions = dataGyms.map(gym => ({
     value: gym.customer
 }));
 
-const renderHeader = () => {
+const dataTableHeader = () => {
     return (
         <div className="flex justify-content-end gap-2">
             <Button 
@@ -436,8 +436,10 @@ const actionBodyTemplate = (rowData: IUserGym) => {
     return (
         <React.Fragment>
                 <Button 
+                    title="Criar movimento"
                     icon="pi pi-calendar-plus" 
                     rounded 
+                    outlined
                     text 
                     raised 
                     aria-label="EntryDateTime" 
@@ -446,8 +448,10 @@ const actionBodyTemplate = (rowData: IUserGym) => {
                     disabled={!rowData.active}
                 />
                 <Button 
+                    title="Realizar saída"
                     icon="pi pi-calendar-minus" 
                     rounded 
+                    outlined
                     text 
                     raised 
                     aria-label="FinishDateTime" 
@@ -456,9 +460,11 @@ const actionBodyTemplate = (rowData: IUserGym) => {
                     disabled={!rowData.active}
                 />
                 <Button 
+                    title="Editar usuário"
                     icon="pi pi-pencil" 
+                    text
+                    outlined
                     rounded 
-                    text 
                     raised 
                     aria-label="Pencil" 
                     className="mr-4 text-teal-400" 
@@ -466,14 +472,26 @@ const actionBodyTemplate = (rowData: IUserGym) => {
                     disabled={!rowData.active}
                 />
                 <Button 
-                    icon="pi pi-trash" 
+                        title="Excluir usuário"
+                    icon={<i className="pi pi-user-minus"></i>}
                     rounded 
-                    text 
+                    outlined 
                     raised 
                     aria-label="Trash" 
-                    className="mr-4 text-red-600" 
+                    className="mr-4 text-red-400" 
                     onClick={() => openDeleteUserGym(rowData)} 
                     disabled={!rowData.active}
+                />
+                <Button 
+                    title="Ativar usuário"
+                    icon={<i className="pi pi-user-plus" style={{color: "green"}}></i>}
+                    outlined
+                    rounded 
+                    raised 
+                    aria-label="check" 
+                    className="mr-4 text-green-800 bg-green-50" 
+                    onClick={() => handleToggleActivateUser(rowData)}
+                    disabled={rowData.active}
                 />
         </React.Fragment>
     );
@@ -498,21 +516,15 @@ const handleToggleActivateUser = async (rowData: IUserGym) => {
 
 const formatActivateUser = (rowData: IUserGym) => {
     return(
-        <ToggleButton 
-            onLabel="Ativo" 
-            offLabel="Inativo" 
-            onIcon="pi pi-check" 
-            offIcon="pi pi-times" 
-            checked={rowData.active} 
-            disabled={rowData.active}
-            onChange={() => handleToggleActivateUser(rowData)}
-        />
+        <Tag 
+            icon={rowData.active ? "pi pi-check" : "pi pi-times"} 
+            severity={rowData.active ? "success" : "danger"}  
+            rounded
+        >
+            <span className="text-base">{rowData.active ? "Ativo" : "Inativo"}</span>
+        </Tag>
     )
 }
-
-const paginatorLeft = <Button type="button" icon="pi pi-refresh" text />;
-const paginatorRight = <Button type="button" icon="pi pi-download" text />;
-const header = renderHeader();
 
 const handleDeleteUserGym = async () => {
     const { message, status } = await deleteUserGymService(userGym.userGymExternalId)
@@ -547,19 +559,21 @@ return (
             <DataTable 
                 onPage={onPage}
                 lazy
+                stripedRows 
                 first={lazyParams.first}
                 paginator
                 sortOrder={-1}
-                header={header} 
+                header={dataTableHeader} 
                 filters={filters} 
                 filterDisplay="menu" 
                 value={dataGymUsers} 
                 dataKey="userGymExternalId" 
                 totalRecords={totalRecords}
                 scrollHeight="60vh"
+                scrollable 
                 globalFilterFields={['name']}
-                paginatorLeft={paginatorLeft} 
-                paginatorRight={paginatorRight}
+                paginatorLeft={<Button type="button" icon="pi pi-refresh" text />} 
+                paginatorRight={<Button type="button" icon="pi pi-download" text />}
                 onFilter={(e) => setFilters(e.value)}
                 rows={lazyParams.rows} 
                 rowsPerPageOptions={[5, 10, 25, 50]}
@@ -572,8 +586,8 @@ return (
                 <Column body={formatDepartureDate} header="Saida" sortable style={{ width: '250px' }}/>
                 <Column body={formatScheduledDepartureDate} header="Saida agendada" sortable style={{ width: '250px' }}/>
                 <Column field="numberTimesEnteredDay" header="Nº de Entradas" sortable style={{ width: '250px' }}/>
-                <Column body={actionBodyTemplate} header="Ações" align="center" style={{ width: '300px' }}/>
                 <Column body={formatActivateUser} header="Status" align="center" sortable style={{ width: '250px' }}/>
+                <Column body={actionBodyTemplate} header="Ações" align="center" style={{ width: '350px' }}/>
             </DataTable>
 
             <Dialog 
