@@ -64,6 +64,8 @@ export function SystemAdmin() {
     const [createUserMovementDialog, setCreateUserMovementDialog] = useState(false);
     const [createUserGymDialog, setCreateUserGymDialog] = useState(false);
     const [updateUserMovementDialog, setUpdateUserMovementDialog] = useState(false);
+    const [totalRecords, setTotalRecords] = useState(0);
+    
     const [filters, setFilters] = useState({
         global: { value: null, matchMode: FilterMatchMode.CONTAINS },
         name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
@@ -73,7 +75,6 @@ export function SystemAdmin() {
         rows: 10,
         page: 0
     });
-    const [totalRecords, setTotalRecords] = useState(0);
 
     useEffect(() => {
         if (!gymSelected) {
