@@ -6,6 +6,7 @@ export interface IListAllUserGym{
     page: number,
     size: number,
     sort: string,
+    active?: boolean,
     customer?: string,
     startTime?: string,
     finishTime?: string,
@@ -57,6 +58,7 @@ export const useMovementGymUser = () => {
                     'page': data.page,
                     'size': data.size,
                     'sort': data.sort,
+                    // 'active': data.active
                 }
             });
             return { data: response.data, status: response.status };
@@ -162,7 +164,22 @@ export const useMovementGymUser = () => {
         }
     }
 
+    const handleActivateUserGymService = async (userGymExternalId: string) =>{
+        try {
+            const response = await api.put(`/v1/user-gym/reactivate-user-gym/${userGymExternalId}`)
+            return { data: response.data, status: response.status };
+        } catch (error: any) {
+            if (error.response) {
+                toast.error(`${error.response.data.message}`);
+            } else {
+                toast.error(`Não foi possível criar o usuário.`);
+            } 
+        }
+
+    }
+
     return { handleListAllUsersFromGym, handleListAllGyms, 
              createMovementGymUser, updateMovementGymUser, 
-             editUserGymService, deleteUserGymService, createUserGym };
+             editUserGymService, deleteUserGymService, createUserGym,
+             handleActivateUserGymService };
 }

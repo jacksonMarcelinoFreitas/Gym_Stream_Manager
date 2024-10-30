@@ -8,11 +8,39 @@ export interface IGymOpeningHours {
     startOpeningHoursUTCMondayToFriday: string
 }
 
+export interface IGymChannel{
+    inputChannel: string,
+    outputChannel: string,
+    customerGym: string
+}
+
 export interface IGym {
     name: string,
-    unit: number,
+    unit: string,
     timezone: number,
     customer: string,
     gymExternalId: string,
     gymOpeningHoursResponse: IGymOpeningHours,
+    channelResponse: IGymChannel | null
 }
+export interface IGymUpdateRequest {
+    name: string;
+    unit: string;
+    timezone: number;
+    customer?: string,
+    gymExternalId: string,
+    gymOpeningHoursUpdateRequest: IGymOpeningHours;
+}
+
+export interface IGymCreateRequest {
+    name: string;
+    unit: string;
+    timezone: number;
+    customer: string,
+    gymExternalId?: string,
+    gymOpeningHoursRequest: IGymOpeningHours;
+    channelRequest: IGymChannel | null
+}
+
+
+// export interface IGymRequest

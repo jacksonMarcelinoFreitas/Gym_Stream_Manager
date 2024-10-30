@@ -21,6 +21,7 @@ import { Button } from "primereact/button";
 import { Dialog } from "primereact/dialog";
 import { toast } from "react-toastify";
 import React from "react";
+import { ToggleButton } from "primereact/togglebutton";
 
 const emptyGymUser: IUserGym = {
     userGymExternalId: '',
@@ -29,6 +30,7 @@ const emptyGymUser: IUserGym = {
     gender: '',
     dateBirth: '',
     customerGym: '',
+    active: false,
     movementGymUser: {
         movementGymUserExternalId: '',
         entryDateTime: '',
@@ -46,7 +48,8 @@ export function SystemAdmin() {
     const { getUTCTimeRange } = useTimeresources()
     const { handleListAllUsersFromGym, handleListAllGyms, 
             createMovementGymUser, updateMovementGymUser, 
-            editUserGymService, deleteUserGymService, createUserGym} = useMovementGymUser();
+            editUserGymService, deleteUserGymService, createUserGym,
+            handleActivateUserGymService } = useMovementGymUser();
 
     const [submitted, setSubmitted] = useState(false);
     const [dataGyms, setDataGyms ] = useState<IGym[]>([])
@@ -103,6 +106,7 @@ export function SystemAdmin() {
                 page: 0, 
                 size: 1000, 
                 sort: 'name,ASC'
+                // active: true
             })
 
             setDataGyms(data.content)
@@ -296,9 +300,10 @@ const renderHeader = () => {
                 value={gymSelected} 
                 onChange={(e) => setGymSelected(e.value)} 
                 options={gymOptions} 
-                placeholder="Academia" 
+                // optionLabel="escolha" 
+                placeholder="Selecione uma academia" 
+                filter 
                 className="w-2"
-                selectOnFocus
             />
             <IconField iconPosition="left">
                 <InputIcon className="pi pi-search"/>
@@ -350,7 +355,6 @@ const handleCreateUserGym = async () => {
 
     if(status == 201){
         toast.success('Usuário criado com sucesso!')
-        console.log(data)
     }
 }
 
@@ -439,6 +443,7 @@ const actionBodyTemplate = (rowData: IUserGym) => {
                     aria-label="EntryDateTime" 
                     className="mr-4 text-green-400" 
                     onClick={() => openCreateMovementDialog(rowData)}
+                    disabled={!rowData.active}
                 />
                 <Button 
                     icon="pi pi-calendar-minus" 
@@ -447,7 +452,9 @@ const actionBodyTemplate = (rowData: IUserGym) => {
                     raised 
                     aria-label="FinishDateTime" 
                     className="mr-4 text-purple-400" 
-                    onClick={() => openUpdateMovementDialog(rowData)}/>
+                    onClick={() => openUpdateMovementDialog(rowData)}
+                    disabled={!rowData.active}
+                />
                 <Button 
                     icon="pi pi-pencil" 
                     rounded 
@@ -456,6 +463,7 @@ const actionBodyTemplate = (rowData: IUserGym) => {
                     aria-label="Pencil" 
                     className="mr-4 text-teal-400" 
                     onClick={() => editUserGym(rowData)} 
+                    disabled={!rowData.active}
                 />
                 <Button 
                     icon="pi pi-trash" 
@@ -465,10 +473,42 @@ const actionBodyTemplate = (rowData: IUserGym) => {
                     aria-label="Trash" 
                     className="mr-4 text-red-600" 
                     onClick={() => openDeleteUserGym(rowData)} 
+                    disabled={!rowData.active}
                 />
         </React.Fragment>
     );
 };
+
+const handleToggleActivateUser = async (rowData: IUserGym) => {
+    const { data, status } = await handleActivateUserGymService(rowData.userGymExternalId);
+    if (data.active && status == 200){
+        toast.success(`Usuário(a) ${data.name} foi ativado(a)!`)
+        setDataGymUsers(prevState => 
+            prevState.map(user => 
+                user.userGymExternalId === rowData.userGymExternalId
+                ? { ...user, active: true }
+                : user
+            )
+        );
+        
+        return true;
+    }
+    return false
+};
+
+const formatActivateUser = (rowData: IUserGym) => {
+    return(
+        <ToggleButton 
+            onLabel="Ativo" 
+            offLabel="Inativo" 
+            onIcon="pi pi-check" 
+            offIcon="pi pi-times" 
+            checked={rowData.active} 
+            disabled={rowData.active}
+            onChange={() => handleToggleActivateUser(rowData)}
+        />
+    )
+}
 
 const paginatorLeft = <Button type="button" icon="pi pi-refresh" text />;
 const paginatorRight = <Button type="button" icon="pi pi-download" text />;
@@ -480,7 +520,11 @@ const handleDeleteUserGym = async () => {
         toast.success(message)
         
         setDataGymUsers((prevUsers) => 
-            prevUsers.filter((user) => user.userGymExternalId !== userGym.userGymExternalId)
+            prevUsers.map((user) => 
+                user.userGymExternalId === userGym.userGymExternalId 
+                    ? { ...user, active: false } 
+                    : user
+            )
         );
     }
 }
@@ -511,10 +555,10 @@ return (
                 filterDisplay="menu" 
                 value={dataGymUsers} 
                 dataKey="userGymExternalId" 
-                paginatorLeft={paginatorLeft} 
                 totalRecords={totalRecords}
                 scrollHeight="60vh"
                 globalFilterFields={['name']}
+                paginatorLeft={paginatorLeft} 
                 paginatorRight={paginatorRight}
                 onFilter={(e) => setFilters(e.value)}
                 rows={lazyParams.rows} 
@@ -523,11 +567,13 @@ return (
                 paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
             >
                 <Column field="name" header="Nome" sortable style={{ width: '200px' }}/>
+                <Column field="email" header="Email" sortable style={{ width: '200px' }}/>
                 <Column body={formatEntryDate} header="Entrada" style={{ width: '200px' }} sortable/>
                 <Column body={formatDepartureDate} header="Saida" sortable style={{ width: '250px' }}/>
                 <Column body={formatScheduledDepartureDate} header="Saida agendada" sortable style={{ width: '250px' }}/>
                 <Column field="numberTimesEnteredDay" header="Nº de Entradas" sortable style={{ width: '250px' }}/>
-                <Column body={actionBodyTemplate} header="Ações" style={{ width: '300px' }}/>
+                <Column body={actionBodyTemplate} header="Ações" align="center" style={{ width: '300px' }}/>
+                <Column body={formatActivateUser} header="Status" align="center" sortable style={{ width: '250px' }}/>
             </DataTable>
 
             <Dialog 

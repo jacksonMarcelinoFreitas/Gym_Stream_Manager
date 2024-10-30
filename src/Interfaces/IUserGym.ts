@@ -13,8 +13,9 @@ export interface IUserGym {
     name: string;
     email: string;
     gender: string;
+    active?: boolean,
     dateBirth: string;
     customerGym: string;
-    movementGymUser: IMovementGymUser | null;
     numberTimesEnteredDay: number;
+    movementGymUser: IMovementGymUser | null;
 }

@@ -1,6 +1,6 @@
 import { toast } from "react-toastify";
 import { api } from "../../../Services/api";
-import { IUserGym } from "../../../Interfaces/IUserGym";
+import { IGym, IGymOpeningHours, IGymUpdateRequest, IGymCreateRequest } from "../../../Interfaces/IGym";
 
 export interface IListAllUserGym{
     page: number,
@@ -23,32 +23,11 @@ export interface IUpdateMovement{
     customerGym: string,
 }
 
-type IuserGymType = Partial<IUserGym>;
+export interface IGymType extends Omit<Partial<IGym>, 'gymOpeningHoursResponse'> {
+    gymOpeningHoursUpdateRequest: IGymOpeningHours | null,
+}
 
-export const useMovementGymUser = () => {
-
-    const handleListAllUsersFromGym = async (data: IListAllUserGym) => {
-        try {
-            // const customerGym = 'GYM_TEST'
-            const response = await api.get(`/v1/user-gym/${data.customer}`, {
-                params: {
-                    'page': data.page,
-                    'size': data.size,
-                    'sort': data.sort,
-                    'startTime': data.startTime,
-                    'finishTime': data.finishTime
-                }
-            });
-            return { data: response.data, status: response.status };
-        } catch (error: any) {
-            if (error.response) {
-                toast.error(`${error.response.data.message}`);
-            } else {
-                toast.error(`Não foi possível obter os dados de usuários.`);
-            }
-            return { data: error.status };
-        }
-    };
+export const useGym = () => {
 
     const handleListAllGyms = async (data: IListAllGyms) => {
         try {
@@ -70,50 +49,14 @@ export const useMovementGymUser = () => {
         }
     };
 
-    const createMovementGymUser = async (data: ICreateMovement) => {
+    const handleCreateGymService = async (data: IGymCreateRequest) => {
         try {
-            const response = await api.post('/v1/movement-gym-user', {
-                userGymExternalId: data.userGymExternalId,
-                minutes: data.minutesToLeave,
-                customerGym: data.customerGym,
-            })
-            return { data: response.data, status: response.status };
-        } catch (error: any) {
-            if (error.response) {
-                toast.error(`${error.response.data.message}`);
-            } else {
-                toast.error(`Não foi possível obter os dados de usuários.`);
-            }
-            return { data: error.status };
-        }
-        
-    }
-
-    const updateMovementGymUser = async (data: IUpdateMovement) => {
-        try {
-            const response = await api.put(`/v1/movement-gym-user/${data.movementGymUserExternalId}`, {
-                customerGym: data.customerGym
-            })
-            return { data: response.data, status: response.status };
-        } catch (error: any) {
-            if (error.response) {
-                toast.error(`${error.response.data.message}`);
-            } else {
-                toast.error(`Não foi possível realizar a saída do usuário.`);
-            }
-            return { data: error.status };
-        }
-        
-    }
-
-    const editUserGymService = async (data: IuserGymType) => {
-        try {
-            const response = await api.put(`/v1/user-gym/${data.userGymExternalId}`, {
+            const response = await api.post(`/v1/gym`, {
                 name: data.name,
-                dateBirth: data.dateBirth,
-                gender: data.gender,
-                email: data.email,
-                customerGym: data.customerGym
+                unit: data.unit,
+                timezone: data.timezone,
+                customer: data.customer,
+                gymOpeningHoursRequest: data.gymOpeningHoursRequest,
             })
 
             return { data: response.data, status: response.status };
@@ -121,28 +64,47 @@ export const useMovementGymUser = () => {
             if (error.response) {
                 toast.error(`${error.response.data.message}`);
             } else {
-                toast.error(`Não foi possível realizar a saída do usuário.`);
+                toast.error(`Não foi atualizar a academia!`);
             }
             return { data: error.status };
         }
     }
 
-    const deleteUserGymService = async (userGymExternalId: string) => {
+    const handleEditGymService = async (data: IGymUpdateRequest) => {
         try {
-            const response = await api.delete(`/v1/user-gym/${userGymExternalId}`)
+            const response = await api.put(`/v1/gym/${data.gymExternalId}`, {
+                name: data.name,
+                unit: data.unit,
+                timezone: data.timezone,
+                gymOpeningHoursUpdateRequest: data.gymOpeningHoursUpdateRequest,
+            })
 
-            return { message: response.data.message, status: response.data.code };
+            return { data: response.data, status: response.status };
         } catch (error: any) {
             if (error.response) {
                 toast.error(`${error.response.data.message}`);
             } else {
-                toast.error(`Não foi possível excluir o usuário.`);
+                toast.error(`Não foi atualizar a academia!`);
             }
             return { data: error.status };
         }
     }
 
-    return { handleListAllUsersFromGym, handleListAllGyms, 
-             createMovementGymUser, updateMovementGymUser, 
-             editUserGymService, deleteUserGymService };
+    const handleDeleteGymService = async (gymExternalId: string) => {
+        try {
+            
+            const response = await api.delete(`/v1/gym/${gymExternalId}`)
+            return { message: response.data.message, status: response.data.code };
+
+        } catch (error: any) {
+            if (error.response) {
+                toast.error(`${error.response.data.message}`);
+            } else {
+                toast.error(`Não foi possível excluir a academia.`);
+            }
+            return { data: error.status };
+        }
+    }
+
+    return { handleEditGymService, handleListAllGyms, handleDeleteGymService, handleCreateGymService };
 }

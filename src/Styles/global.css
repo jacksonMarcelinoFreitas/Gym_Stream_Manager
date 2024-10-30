@@ -6,3 +6,30 @@ body {
     font-family: 'Montserrat', sans-serif;
     color: black;
 }
+
+/* Personalização para o estado ativo */
+.p-togglebutton.p-highlight .p-button {
+    background-color: #2fdf35 !important;
+    border-color: #16721b !important;
+    color: #000000 !important;
+}
+
+/* Personalização para o estado inativo */
+.p-togglebutton:not(.p-highlight) .p-button {
+    background-color: #ff5549 !important;
+    border-color: #D32F2F !important;
+    color: #FFFFFF !important;
+}
+
+/* Ícone para o estado ativo */
+.p-togglebutton.p-highlight .p-button-icon {
+    color: #000000 !important;
+    font-size: 1.2em !important;
+}
+
+/* Ícone para o estado inativo */
+.p-togglebutton:not(.p-highlight) .p-button-icon {
+    color: #FFFFFF !important;
+    font-size: 1em !important;
+}
+
