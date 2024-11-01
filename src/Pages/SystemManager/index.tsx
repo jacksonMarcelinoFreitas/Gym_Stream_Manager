@@ -92,8 +92,8 @@ export function SystemAdmin() {
                 startTime: date.startTime, 
                 finishTime: date.finishTime
             });
-            setDataGymUsers(data.content);
 
+            setDataGymUsers(data.content);
             setTotalRecords(data.totalElement);
     
         }
@@ -301,7 +301,6 @@ const dataTableHeader = () => {
                 value={gymSelected} 
                 onChange={(e) => setGymSelected(e.value)} 
                 options={gymOptions} 
-                // optionLabel="escolha" 
                 placeholder="Selecione uma academia" 
                 filter 
                 className="w-2"
@@ -356,6 +355,17 @@ const handleCreateUserGym = async () => {
 
     if(status == 201){
         toast.success('Usuário criado com sucesso!')
+        const addNewUserGym = {
+            ...data
+        }
+
+        setDataGymUsers((prevData) => [
+            ...prevData,
+            addNewUserGym,
+        ])
+
+        setNewUserGym(emptyGymUser)
+        setCreateUserGymDialog(false)
     }
 }
 
@@ -551,6 +561,10 @@ const onPage = (event: any) => {
     });
 };
 
+const dateFilterTemplate = (options) => {
+    return <Calendar value={options.value} onChange={(e) => options.filterCallback(e.value, options.index)} dateFormat="mm/dd/yy" placeholder="mm/dd/yyyy" mask="99/99/9999" />;
+};
+
 return (
     <>
         <div className="flex flex-column gap-4 lg:min-width mx-8 my-4 h-full">
@@ -558,37 +572,37 @@ return (
             <Logo/>
 
             <DataTable 
-                onPage={onPage}
                 lazy
-                stripedRows 
-                first={lazyParams.first}
                 paginator
-                sortOrder={-1}
-                header={dataTableHeader} 
-                filters={filters} 
-                filterDisplay="menu" 
-                value={dataGymUsers} 
-                dataKey="userGymExternalId" 
-                totalRecords={totalRecords}
-                scrollHeight="60vh"
                 scrollable 
-                globalFilterFields={['name']}
+                stripedRows 
+                sortOrder={-1}
+                onPage={onPage}
+                // filters={filters} 
+                filterDisplay="row"
+                scrollHeight="60vh"
+                value={dataGymUsers} 
+                rows={lazyParams.rows}
+                first={lazyParams.first}
+                header={dataTableHeader} 
+                totalRecords={totalRecords}
+                dataKey="userGymExternalId" 
+                // globalFilterFields={['name']}
+                rowsPerPageOptions={[5, 10, 25, 50]}
+                // onFilter={(e) => setFilters(e.value)}
                 paginatorLeft={<Button type="button" icon="pi pi-refresh" text />} 
                 paginatorRight={<Button type="button" icon="pi pi-download" text />}
-                onFilter={(e) => setFilters(e.value)}
-                rows={lazyParams.rows} 
-                rowsPerPageOptions={[5, 10, 25, 50]}
                 emptyMessage="Nenhum usuário encontrado. Por favor selecione uma academia!"
                 paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
             >
-                <Column field="name" header="Nome" sortable style={{ width: '200px' }}/>
-                <Column field="email" header="Email" sortable style={{ width: '200px' }}/>
-                <Column body={formatEntryDate} header="Entrada" style={{ width: '200px' }} sortable/>
-                <Column body={formatDepartureDate} header="Saida" sortable style={{ width: '250px' }}/>
-                <Column body={formatScheduledDepartureDate} header="Saida agendada" sortable style={{ width: '250px' }}/>
-                <Column field="numberTimesEnteredDay" header="Nº de Entradas" sortable style={{ width: '250px' }}/>
-                <Column body={formatActivateUser} header="Status" align="center" sortable style={{ width: '250px' }}/>
-                <Column body={actionBodyTemplate} header="Ações" align="center" style={{ width: '350px' }}/>
+                <Column field="name" header="Nome" style={{  width: '200px' }} filter filterPlaceholder="Search" showFilterMenu={false} />
+                <Column field="email" header="Email" sortable style={{ width: '200px' }} filter filterPlaceholder="Search" showFilterMenu={false} />
+                <Column body={formatEntryDate} header="Entrada" style={{ width: '200px' }} sortable filter filterPlaceholder="Search"  showFilterMenu={false}/>
+                <Column body={formatDepartureDate} header="Saida" sortable style={{ width: '250px' }} filter filterPlaceholder="Search" showFilterMenu={false}/>
+                <Column body={formatScheduledDepartureDate} header="Saida agendada" sortable style={{ width: '250px' }} filter filterPlaceholder="Search" showFilterMenu={false}/>
+                <Column field="numberTimesEnteredDay" header="Nº de Entradas" sortable style={{ width: '250px' }} filter filterPlaceholder="Search" showFilterMenu={false}/>
+                <Column body={formatActivateUser} header="Status" align="center" sortable style={{ width: '250px' }} filter filterPlaceholder="Search" showFilterMenu={false}/>
+                <Column body={actionBodyTemplate} header="Ações" align="center" style={{ width: '350px' }} filter filterPlaceholder="Search"  showFilterMenu={false}/>
             </DataTable>
 
             <Dialog 

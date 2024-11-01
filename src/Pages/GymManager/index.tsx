@@ -3,20 +3,25 @@ import { InputNumber } from "primereact/inputnumber";
 import { Logo } from "../../Assets/logo_gym_stream"
 import { InputIcon } from "primereact/inputicon";
 import { IconField } from "primereact/iconfield";
-import { FilterMatchMode } from "primereact/api";
-import { DataTable } from "primereact/datatable";
+import { useDebounce } from 'primereact/hooks';
+import { DataTable, DataTableStateEvent } from "primereact/datatable";
 import { InputText } from "primereact/inputtext";
 import { useGym } from "./Service"
 import { Calendar } from "primereact/calendar";
 import { classNames } from "primereact/utils";
 import { IGym } from "../../Interfaces/IGym";
 import { useEffect, useState } from "react";
-import { Column } from "primereact/column";
+import { Column, ColumnFilterModelOptions } from "primereact/column";
 import { Button } from "primereact/button";
 import { Dialog } from "primereact/dialog";
 import { toast } from "react-toastify";
 import React from "react";
 import { Tag } from "primereact/tag";
+import { MultiSelect } from "primereact/multiselect";
+import { Dropdown } from "primereact/dropdown";
+import { Link } from "react-router-dom";
+import { MegaMenu } from "primereact/megamenu";
+import { Ripple } from "primereact/ripple";
 
 const emptyGym: IGym = {
     name: '',
@@ -54,26 +59,45 @@ export function GymAdmin() {
     const [editGymDialog, setEditGymDialog] = useState(false);
     const [deleteGymDialog, setDeleteGymDialog] = useState(false);
     const [createGymDialog, setCreateGymDialog] = useState(false);
-    const [filters, setFilters] = useState({
-        global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-        name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    // const [filters, setFilters] = useState({
+    //     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    //     name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    // });
+    const [totalRecords, setTotalRecords] = useState(0);
+
+    const [lazyParams, setLazyParams] = useState({
+        first: 0,
+        rows: 10,
+        page: 0
     });
 
+    const initFilterValues = {
+        name: { value: '' },
+        customer: { value: '' },
+        active: { value: '' }
+    };
+    
+    const [filters, setFilters] = useState(initFilterValues);    
 
     useEffect(() => {
         async function fetchAllGymsData(){
             const { data } = await handleListAllGyms({
-                page: 0, 
-                size: 50, 
-                sort: 'name,ASC'
+                sort: 'name,ASC',
+                page: lazyParams.page, 
+                size: lazyParams.rows, 
+                name: filters.name.value,
+                active: filters.active.value,
+                customer: filters.customer.value,
             })
 
             setDataGyms(data.content)
+            setTotalRecords(data.totalElement);
         }
 
         fetchAllGymsData()
-    },[]);
+    },[lazyParams, filters]);
 
+    //channel são criados observando o customer
     useEffect(() => {
         if (newDataGym.customer) {
             setNewDataGym((prevDataGym) => ({
@@ -131,19 +155,16 @@ export function GymAdmin() {
 
     const renderHeader = () => {
         return (
-            <div className="flex justify-content-end gap-2">
+            <div className="flex justify-content-start gap-2">
                 <Button 
                     raised 
                     icon="pi pi-plus" 
                     label="Criar academia"
                     aria-label="createUserGym"
                     onClick={() => openCreateGymDialog()}
+                    className="h-3rem"
                     style={{ backgroundColor: '#EB3B00', color: '#ffffff' }}
                 />
-                <IconField iconPosition="left">
-                    <InputIcon className="pi pi-search"/>
-                    <InputText value={globalFilterValue} onChange={onGlobalFilterChange} placeholder="Keyword Search"/>
-                </IconField>
             </div>
         );
     };
@@ -377,34 +398,104 @@ export function GymAdmin() {
         )
     }
 
+    const onFilter = (e: DataTableStateEvent) => {
+        const newFilters = { ...filters, ...e.filters };
+        setFilters(newFilters);
+        console.log(filters)
+    };
+
+    const onPage = (event: DataTableStateEvent) => {
+        setLazyParams({
+            ...lazyParams,
+            first: event.first,
+            rows: event.rows,
+            page: event?.page || 0
+        });
+    };
+
+    const clearFilters = () => {
+        setFilters(initFilterValues);
+    };
+
+    const [status] = useState(['ativo','inativo']);
+
+    const statusItemTemplate = (option: string) => {
+        return( 
+            <Tag 
+                rounded
+                style={ option == 'ativo' ? { backgroundColor: "#16721b9f"} : { backgroundColor: "#d32f2fb7"} } 
+            >
+                <span className="flex-row px-2">{ option }</span>
+            </Tag>
+        )
+    };
+
+    const statusRowFilterTemplate = (options: any) => {
+        return (
+            <Dropdown 
+                options={status} 
+                value={options.value} 
+                placeholder="Select One" 
+                className="p-column-filter" 
+                style={{ minWidth: '12rem'}} 
+                itemTemplate={statusItemTemplate} 
+                onChange={(e) => options.filterApplyCallback(e.value === 'ativo')} 
+            />
+        );
+    };
+
+
+    const items = [
+        {
+            label: 'Movimentos',
+            root: true,
+            template: <Link className="flex align-items-center cursor-pointer px-3 py-2 overflow-hidden relative font-semibold text-lg uppercase p-ripple hover:surface-ground" style={{ borderRadius: '2rem' }} to={'/admin/system'}>Movimentos</Link>,
+        },
+        {
+            label: 'Academia',
+            root: true,
+            template: <Link className="flex align-items-center cursor-pointer px-3 py-2 overflow-hidden relative font-semibold text-lg uppercase p-ripple hover:surface-ground" style={{ borderRadius: '2rem' }} to={'/admin/gym'}>Academia</Link>,
+        },
+    ];
+    
+
     return (
         <>
             <div className="flex flex-column gap-4 lg:min-width mx-8 my-4 h-full">
 
-                <Logo/>
+            <div className="card">
+                <MegaMenu model={items} orientation="horizontal" start={Logo} breakpoint="960px" className="p-3 surface-0 shadow-2" style={{ borderRadius: '3rem' }} />
+            </div>
 
-                <DataTable 
+                <DataTable
+                    lazy
                     paginator
+                    scrollable 
+                    stripedRows
                     sortOrder={-1}
-                    header={renderHeader} 
-                    filters={filters} 
-                    value={dataGyms} 
-                    filterDisplay="menu" 
+                    value={dataGyms}
+                    onPage={onPage}
+                    filterDelay={1000}
+                    onFilter={onFilter}
                     scrollHeight="60vh"
+                    filterDisplay="row" 
+                    header={renderHeader} 
+                    first={lazyParams.first}
+                    rows={lazyParams.rows}
+                    totalRecords={totalRecords}
                     dataKey="userGymExternalId" 
-                    paginatorLeft={<Button type="button" icon="pi pi-refresh" text />} 
                     globalFilterFields={['name']}
-                    paginatorRight={<Button type="button" icon="pi pi-download" text />}
-                    onFilter={(e) => setFilters(e.value)}
-                    rows={10} rowsPerPageOptions={[10, 20]}
+                    rowsPerPageOptions={[10, 20]}
+                    emptyMessage="Nenhuma academia encontrada"
                     currentPageReportTemplate="{first} to {last} of {totalRecords}" 
-                    emptyMessage="Nenhum usuário encontrado. Por favor selecione uma academia!"
-                    paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
+                    paginatorLeft={<Button type="button" icon="pi pi-refresh" text />} 
+                    paginatorRight={<Button type="button" icon="pi pi-download" text />}
+                    paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
                 >
-                    <Column field="name" header="Nome" sortable style={{ width: '200px' }}/>
-                    <Column field="customer" header="Customer" sortable style={{ width: '200px' }}/>
-                    <Column body={actionBodyTemplate} header="Ações" align="center" style={{ width: '300px' }}/>
-                    <Column body={fieldActivateGym} header="Status" align="center" style={{ width: '300px' }}/>
+                    <Column field="name" header="Nome" filter filterPlaceholder="Search" showFilterMenu={false} onFilterClear={clearFilters} style={{ width: '200px' }}/>
+                    <Column field="customer" header="Customer" filter filterPlaceholder="Search" showFilterMenu={false} style={{ width: '200px' }}/>
+                    <Column body={fieldActivateGym} field="active" header="Status" align="center" filter filterPlaceholder="Search" filterElement={statusRowFilterTemplate} showFilterMenu={false} style={ {width: '200px', maxWidth: '200px'}}/>
+                    <Column body={actionBodyTemplate} header="Ações" align="center" style={{ width: '500px' }}/>
                 </DataTable>
 
                 <Dialog 
@@ -691,7 +782,7 @@ export function GymAdmin() {
                     </div> 
 
                 </Dialog>
-
+ 
                 <ConfirmDialog
                     icon="pi pi-trash"
                     group="declarative"

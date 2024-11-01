@@ -6,6 +6,8 @@ export interface IListAllUserGym{
     page: number,
     size: number,
     sort: string,
+    name?: string,
+    active?: string,
     customer?: string,
     startTime?: string,
     finishTime?: string,
@@ -36,6 +38,9 @@ export const useGym = () => {
                     'page': data.page,
                     'size': data.size,
                     'sort': data.sort,
+                    'name': data.name,
+                    'active': data.active,
+                    'customer': data.customer,
                 }
             });
             return { data: response.data, status: response.status };
