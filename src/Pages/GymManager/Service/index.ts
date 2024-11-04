@@ -1,37 +1,14 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { IGymUpdateRequest, IGymCreateRequest } from "../../../Interfaces/IGym";
+import { IListAllUserGym } from "../../../Interfaces/IListAllUserGym";
+import api from "../../../Services/api";
 import { toast } from "react-toastify";
-import { api } from "../../../Services/api";
-import { IGym, IGymOpeningHours, IGymUpdateRequest, IGymCreateRequest } from "../../../Interfaces/IGym";
-
-export interface IListAllUserGym{
-    page: number,
-    size: number,
-    sort: string,
-    name?: string,
-    active?: string,
-    customer?: string,
-    startTime?: string,
-    finishTime?: string,
-}
 
 type IListAllGyms = IListAllUserGym
 
-export interface ICreateMovement{
-    userGymExternalId: string,
-    minutesToLeave: number,
-    customerGym: string
-}
-export interface IUpdateMovement{
-    movementGymUserExternalId: string,
-    customerGym: string,
-}
-
-export interface IGymType extends Omit<Partial<IGym>, 'gymOpeningHoursResponse'> {
-    gymOpeningHoursUpdateRequest: IGymOpeningHours | null,
-}
-
 export const useGym = () => {
 
-    const handleListAllGyms = async (data: IListAllGyms) => {
+    const handleListAllGymsService = async (data: IListAllGyms) => {
         try {
             const response = await api.get('/v1/gym', {
                 params: {
@@ -126,5 +103,7 @@ export const useGym = () => {
 
     }
 
-    return { handleEditGymService, handleListAllGyms, handleDeleteGymService, handleCreateGymService, handleActivateGymService };
+    return {handleEditGymService, handleListAllGymsService, 
+            handleDeleteGymService, handleCreateGymService, 
+            handleActivateGymService};
 }

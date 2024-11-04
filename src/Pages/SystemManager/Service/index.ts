@@ -1,28 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { ICreateMovement, IUpdateMovement } from "../../../Interfaces/IMovementGymUser";
+import { IListAllUserGym } from "../../../Interfaces/IListAllUserGym";
+import { IUserGym,  } from "../../../Interfaces/IUserGym";
+import api from "../../../Services/api";
 import { toast } from "react-toastify";
-import { api } from "../../../Services/api";
-import { IUserGym } from "../../../Interfaces/IUserGym";
-
-export interface IListAllUserGym{
-    page: number,
-    size: number,
-    sort: string,
-    active?: boolean,
-    customer?: string,
-    startTime?: string,
-    finishTime?: string,
-}
-
-type IListAllGyms = IListAllUserGym
-
-export interface ICreateMovement{
-    userGymExternalId: string,
-    minutesToLeave: number,
-    customerGym: string
-}
-export interface IUpdateMovement{
-    movementGymUserExternalId: string,
-    customerGym: string,
-}
+import { AxiosError } from "axios";
 
 type IUserGymType = Partial<IUserGym>;
 
@@ -30,45 +12,21 @@ export const useMovementGymUser = () => {
 
     const handleListAllUsersFromGym = async (data: IListAllUserGym) => {
         try {
-            // const customerGym = 'GYM_TEST'
             const response = await api.get(`/v1/user-gym/${data.customer}`, {
                 params: {
                     'page': data.page,
                     'size': data.size,
                     'sort': data.sort,
+                    'name': data.name,
+                    'email': data.email,
+                    'active': data.active,
                     'startTime': data.startTime,
-                    'finishTime': data.finishTime
+                    'finishTime': data.finishTime,
                 }
             });
             return { data: response.data, status: response.status };
-        } catch (error: any) {
-            if (error.response) {
-                toast.error(`${error.response.data.message}`);
-            } else {
-                toast.error(`Não foi possível obter os dados de usuários.`);
-            }
-            return { data: error.status };
-        }
-    };
-
-    const handleListAllGyms = async (data: IListAllGyms) => {
-        try {
-            const response = await api.get('/v1/gym', {
-                params: {
-                    'page': data.page,
-                    'size': data.size,
-                    'sort': data.sort,
-                    'active': data.active
-                }
-            });
-            return { data: response.data, status: response.status };
-        } catch (error: any) {
-            if (error.response) {
-                toast.error(`${error.response.data.message}`);
-            } else {
-                toast.error(`Não foi possível obter os dados de usuários.`);
-            }
-            return { data: error.status };
+        } catch (error) {
+            return { data: null, status: (error as AxiosError).response?.status };
         }
     };
 
@@ -112,9 +70,9 @@ export const useMovementGymUser = () => {
         try {
             const response = await api.put(`/v1/user-gym/${data.userGymExternalId}`, {
                 name: data.name,
-                dateBirth: data.dateBirth,
-                gender: data.gender,
                 email: data.email,
+                gender: data.gender,
+                dateBirth: data.dateBirth,
                 customerGym: data.customerGym
             })
 
@@ -148,9 +106,9 @@ export const useMovementGymUser = () => {
         try {
             const response = await api.post('/v1/user-gym',{
                 name: data.name,
-                dateBirth: data.dateBirth,
-                gender: data.gender,
                 email: data.email,
+                gender: data.gender,
+                dateBirth: data.dateBirth,
                 customerGym: data.customerGym
             })
             return { data: response.data, status: response.status };
@@ -178,8 +136,8 @@ export const useMovementGymUser = () => {
 
     }
 
-    return { handleListAllUsersFromGym, handleListAllGyms, 
+    return { handleListAllUsersFromGym, 
              createMovementGymUser, updateMovementGymUser, 
-             editUserGymService, deleteUserGymService, createUserGym,
-             handleActivateUserGymService };
+             editUserGymService, deleteUserGymService, 
+             createUserGym, handleActivateUserGymService };
 }

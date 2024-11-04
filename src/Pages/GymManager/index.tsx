@@ -1,27 +1,22 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable react-hooks/exhaustive-deps */
+import { DataTable, DataTableStateEvent } from "primereact/datatable";
 import { ConfirmDialog } from "primereact/confirmdialog";
 import { InputNumber } from "primereact/inputnumber";
-import { Logo } from "../../Assets/logo_gym_stream"
-import { InputIcon } from "primereact/inputicon";
-import { IconField } from "primereact/iconfield";
-import { useDebounce } from 'primereact/hooks';
-import { DataTable, DataTableStateEvent } from "primereact/datatable";
 import { InputText } from "primereact/inputtext";
-import { useGym } from "./Service"
+import { Navbar } from '../../Components/Navbar'
+import { Dropdown } from "primereact/dropdown";
 import { Calendar } from "primereact/calendar";
 import { classNames } from "primereact/utils";
 import { IGym } from "../../Interfaces/IGym";
 import { useEffect, useState } from "react";
-import { Column, ColumnFilterModelOptions } from "primereact/column";
+import { Column } from "primereact/column";
 import { Button } from "primereact/button";
 import { Dialog } from "primereact/dialog";
 import { toast } from "react-toastify";
-import React from "react";
 import { Tag } from "primereact/tag";
-import { MultiSelect } from "primereact/multiselect";
-import { Dropdown } from "primereact/dropdown";
-import { Link } from "react-router-dom";
-import { MegaMenu } from "primereact/megamenu";
-import { Ripple } from "primereact/ripple";
+import { useGym } from "./Service"
+import React from "react";
 
 const emptyGym: IGym = {
     name: '',
@@ -48,40 +43,35 @@ const emptyGym: IGym = {
   
 export function GymAdmin() {
 
-    const { handleEditGymService, handleListAllGyms, handleDeleteGymService,
+    const { handleEditGymService, handleListAllGymsService, handleDeleteGymService,
             handleCreateGymService, handleActivateGymService } = useGym()
 
     const [submitted, setSubmitted] = useState(false);
+    const [totalRecords, setTotalRecords] = useState(0);
     const [dataGyms, setDataGyms ] = useState<IGym[]>([])
-    const [globalFilterValue, setGlobalFilterValue] = useState('');
     const [dataGym, setDataGym] = useState<IGym>(emptyGym);
-    const [newDataGym, setNewDataGym] = useState<IGym>(emptyGym);
     const [editGymDialog, setEditGymDialog] = useState(false);
+    const [newDataGym, setNewDataGym] = useState<IGym>(emptyGym);
     const [deleteGymDialog, setDeleteGymDialog] = useState(false);
     const [createGymDialog, setCreateGymDialog] = useState(false);
-    // const [filters, setFilters] = useState({
-    //     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    //     name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-    // });
-    const [totalRecords, setTotalRecords] = useState(0);
 
     const [lazyParams, setLazyParams] = useState({
         first: 0,
         rows: 10,
         page: 0
     });
-
-    const initFilterValues = {
-        name: { value: '' },
-        customer: { value: '' },
-        active: { value: '' }
-    };
     
-    const [filters, setFilters] = useState(initFilterValues);    
+    const initFilterValues = {
+        name: { value: '', matchMode: 'contains' as const },
+        customer: { value: '', matchMode: 'contains' as const },
+        active: { value: undefined, matchMode: 'contains' as const }
+    };
 
+    const [filters, setFilters] = useState(initFilterValues);    
+    
     useEffect(() => {
         async function fetchAllGymsData(){
-            const { data } = await handleListAllGyms({
+            const { data } = await handleListAllGymsService({
                 sort: 'name,ASC',
                 page: lazyParams.page, 
                 size: lazyParams.rows, 
@@ -97,7 +87,6 @@ export function GymAdmin() {
         fetchAllGymsData()
     },[lazyParams, filters]);
 
-    //channel são criados observando o customer
     useEffect(() => {
         if (newDataGym.customer) {
             setNewDataGym((prevDataGym) => ({
@@ -115,14 +104,6 @@ export function GymAdmin() {
     const openEditGymDialog = (gymData: IGym) => {
         setDataGym({ ...gymData });
         setEditGymDialog(true);
-    };
-
-    const onGlobalFilterChange = (e: any) => {
-        const value = e.target.value;
-        let _filters = { ...filters };
-        _filters['global'].value = value;
-        setFilters(_filters);
-        setGlobalFilterValue(value);
     };
 
     const openCreateGymDialog = () => {
@@ -148,21 +129,21 @@ export function GymAdmin() {
         setSubmitted(false);
         setEditGymDialog(false);
     };
-
+    
     const hideCreateGymDialog = () => {
         setCreateGymDialog(false);
     };
 
-    const renderHeader = () => {
+    const dataTableHeader = () => {
         return (
-            <div className="flex justify-content-start gap-2">
+            <div className="flex justify-content-end gap-2">
                 <Button 
                     raised 
                     icon="pi pi-plus" 
+                    className="h-3rem"
                     label="Criar academia"
                     aria-label="createUserGym"
                     onClick={() => openCreateGymDialog()}
-                    className="h-3rem"
                     style={{ backgroundColor: '#EB3B00', color: '#ffffff' }}
                 />
             </div>
@@ -188,25 +169,20 @@ export function GymAdmin() {
                 ...data,
             };
             setDataGym(updatedGym)
-
             setDataGyms(prevData => {
                 const index = prevData.findIndex(
                     gym => gym.gymExternalId === updatedGym.gymExternalId
                 );
-
                 if (index !== -1) {
                     const updatedData = [...prevData];
                     updatedData[index] = updatedGym;
                     return updatedData;
                 }
-
                 return prevData;
             });
-
             setEditGymDialog(false)
-
         }
-        setSubmitted(true)
+        setSubmitted(false)
     }
 
     const handleSubmitCreateGym = async () => {
@@ -275,43 +251,6 @@ export function GymAdmin() {
             />
         </React.Fragment>
     );
-
-    const actionBodyTemplate = (rowData: IGym) => {
-        return (
-            <React.Fragment>
-                <Button
-                    title="Criar academia"
-                    rounded 
-                    outlined  
-                    icon="pi pi-pencil"
-                    aria-label="CreateGym" 
-                    className="mr-4 text-blue-600" 
-                    onClick={() => openEditGymDialog(rowData)}
-                    disabled={!rowData.active}
-                />
-                <Button 
-                    title="Excluir academia"
-                    icon={<i className="pi pi-trash"></i>}
-                    rounded 
-                    outlined 
-                    aria-label="Trash" 
-                    className="mr-4 text-red-400" 
-                    onClick={() => openDeleteGymDialog(rowData)} 
-                    disabled={!rowData.active}
-                />
-                <Button 
-                    title="Ativar academia"
-                    icon={<i className="pi pi-check-circle" ></i>}
-                    outlined
-                    rounded 
-                    aria-label="check" 
-                    className="mr-4 text-green-800 bg-green-50" 
-                    onClick={() => handleToggleActivateGym(rowData)}
-                    disabled={rowData.active}
-                />
-            </React.Fragment>
-        );
-    };
 
     const handleToggleActivateGym = async (rowData: IGym) => {
         const { data, status } = await handleActivateGymService(rowData.gymExternalId);
@@ -401,7 +340,6 @@ export function GymAdmin() {
     const onFilter = (e: DataTableStateEvent) => {
         const newFilters = { ...filters, ...e.filters };
         setFilters(newFilters);
-        console.log(filters)
     };
 
     const onPage = (event: DataTableStateEvent) => {
@@ -435,7 +373,7 @@ export function GymAdmin() {
             <Dropdown 
                 options={status} 
                 value={options.value} 
-                placeholder="Select One" 
+                placeholder="Buscar" 
                 className="p-column-filter" 
                 style={{ minWidth: '12rem'}} 
                 itemTemplate={statusItemTemplate} 
@@ -444,28 +382,49 @@ export function GymAdmin() {
         );
     };
 
-
-    const items = [
-        {
-            label: 'Movimentos',
-            root: true,
-            template: <Link className="flex align-items-center cursor-pointer px-3 py-2 overflow-hidden relative font-semibold text-lg uppercase p-ripple hover:surface-ground" style={{ borderRadius: '2rem' }} to={'/admin/system'}>Movimentos</Link>,
-        },
-        {
-            label: 'Academia',
-            root: true,
-            template: <Link className="flex align-items-center cursor-pointer px-3 py-2 overflow-hidden relative font-semibold text-lg uppercase p-ripple hover:surface-ground" style={{ borderRadius: '2rem' }} to={'/admin/gym'}>Academia</Link>,
-        },
-    ];
+    const actionBodyTemplate = (rowData: IGym) => {
+        return (
+            <React.Fragment>
+                <Button
+                    rounded 
+                    outlined  
+                    icon="pi pi-pencil"
+                    title="Criar academia"
+                    aria-label="CreateGym" 
+                    disabled={!rowData.active}
+                    className="mr-4 text-blue-600" 
+                    onClick={() => openEditGymDialog(rowData)}
+                />
+                <Button 
+                    rounded 
+                    outlined 
+                    aria-label="Trash" 
+                    title="Excluir academia"
+                    className="mr-4 text-red-400" 
+                    disabled={!rowData.active}
+                    icon={<i className="pi pi-trash"></i>}
+                    onClick={() => openDeleteGymDialog(rowData)} 
+                />
+                <Button 
+                    outlined
+                    rounded 
+                    aria-label="check" 
+                    title="Ativar academia"
+                    disabled={rowData.active}
+                    icon={<i className="pi pi-check-circle" ></i>}
+                    className="mr-4 text-green-800 bg-green-50" 
+                    onClick={() => handleToggleActivateGym(rowData)}
+                />
+            </React.Fragment>
+        );
+    };
     
 
     return (
         <>
             <div className="flex flex-column gap-4 lg:min-width mx-8 my-4 h-full">
 
-            <div className="card">
-                <MegaMenu model={items} orientation="horizontal" start={Logo} breakpoint="960px" className="p-3 surface-0 shadow-2" style={{ borderRadius: '3rem' }} />
-            </div>
+                <Navbar />
 
                 <DataTable
                     lazy
@@ -475,16 +434,16 @@ export function GymAdmin() {
                     sortOrder={-1}
                     value={dataGyms}
                     onPage={onPage}
+                    filters={filters}
                     filterDelay={1000}
                     onFilter={onFilter}
                     scrollHeight="60vh"
                     filterDisplay="row" 
-                    header={renderHeader} 
+                    header={dataTableHeader} 
                     first={lazyParams.first}
                     rows={lazyParams.rows}
                     totalRecords={totalRecords}
                     dataKey="userGymExternalId" 
-                    globalFilterFields={['name']}
                     rowsPerPageOptions={[10, 20]}
                     emptyMessage="Nenhuma academia encontrada"
                     currentPageReportTemplate="{first} to {last} of {totalRecords}" 
@@ -492,10 +451,39 @@ export function GymAdmin() {
                     paginatorRight={<Button type="button" icon="pi pi-download" text />}
                     paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
                 >
-                    <Column field="name" header="Nome" filter filterPlaceholder="Search" showFilterMenu={false} onFilterClear={clearFilters} style={{ width: '200px' }}/>
-                    <Column field="customer" header="Customer" filter filterPlaceholder="Search" showFilterMenu={false} style={{ width: '200px' }}/>
-                    <Column body={fieldActivateGym} field="active" header="Status" align="center" filter filterPlaceholder="Search" filterElement={statusRowFilterTemplate} showFilterMenu={false} style={ {width: '200px', maxWidth: '200px'}}/>
-                    <Column body={actionBodyTemplate} header="Ações" align="center" style={{ width: '500px' }}/>
+                    <Column 
+                        filter 
+                        field="name" 
+                        header="Nome" 
+                        showFilterMenu={false}
+                        filterPlaceholder="Buscar" 
+                        onFilterClear={clearFilters} 
+                        style={{ width: '200px' }}/>
+                    <Column 
+                        field="customer" 
+                        header="Customer" 
+                        showFilterMenu={false} 
+                        style={{ width: '200px' }}
+                        filter 
+                        filterPlaceholder="Buscar" 
+                    />
+                    <Column 
+                        filter 
+                        header="Status" 
+                        field="active" 
+                        align="center" 
+                        body={fieldActivateGym} 
+                        filterPlaceholder="Buscar" 
+                        showFilterMenu={false} 
+                        filterElement={statusRowFilterTemplate} 
+                        style={ {width: '200px', maxWidth: '200px'}}
+                    />
+                    <Column 
+                        header="Ações" 
+                        align="center" 
+                        body={actionBodyTemplate} 
+                        style={{ width: '500px' }}
+                    />
                 </DataTable>
 
                 <Dialog 
@@ -776,7 +764,7 @@ export function GymAdmin() {
                             required
                             autoFocus
                             id="outputChannel"
-                            value={`input-channel-${newDataGym.customer.toLowerCase()}`}
+                            value={`output-channel-${newDataGym.customer.toLowerCase()}`}
                             className={classNames({ 'p-invalid': submitted && !newDataGym.channelResponse?.outputChannel })}
                         />
                     </div> 
@@ -793,11 +781,7 @@ export function GymAdmin() {
                     onHide={() => setDeleteGymDialog(false)}
                     reject={() => setDeleteGymDialog(false)}
                     breakpoints={{ '1100px': '75vw', '960px': '100vw' }}
-                    message={
-                        <p> 
-                            Você tem certeza que deseja excluir <span style={{ color: 'red', fontWeight: 'bold'}}>{ dataGym.name.toUpperCase() }</span> ?
-                        </p>
-                    }
+                    message={<p>Você tem certeza que deseja excluir <span style={{ color: 'red', fontWeight: 'bold'}}>{ dataGym.name.toUpperCase() }</span> ?</p>}
                 >
                 </ConfirmDialog>
                 

@@ -7,3 +7,14 @@ export interface IMovementGymUser {
         departureDateTime: string
     }
 }
+
+export interface ICreateMovement{
+    customerGym: string
+    minutesToLeave: number,
+    userGymExternalId: string,
+}
+
+export interface IUpdateMovement{
+    customerGym: string,
+    movementGymUserExternalId: string,
+}

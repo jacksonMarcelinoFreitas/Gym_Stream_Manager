@@ -1,6 +1,22 @@
-import axios from 'axios';
+import axios, { AxiosError, AxiosInstance } from 'axios';
+import { toast } from 'react-toastify';
+import { ErrorResponse } from '../Interfaces/IErrorResponse'
 
-export const api = axios.create({
-  // baseURL: "http://34.228.223.216:8080"
-  baseURL: "http://localhost:8080"
+const api: AxiosInstance = axios.create({
+  baseURL: 'http://localhost:8080',
 });
+
+api.interceptors.response.use(
+  (response) => response,
+  (error: AxiosError<ErrorResponse>) => {
+      if (error.response) {
+          const errorMessage = error.response.data?.message || 'Erro inesperado. Tente novamente mais tarde.';
+          toast.error(errorMessage);
+      } else {
+          toast.error('Erro na conexão com o servidor.');
+      }
+      return Promise.reject(error);
+  }
+);
+
+export default api;

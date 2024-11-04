@@ -59,5 +59,22 @@ export const useTimeresources = () => {
         return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
     };
 
-    return { getUTCTimeRange, getTimeRange, convertToLocalUTC };
+    const convertToUTC = (localUTCDateString: string) => {
+        const date = new Date(localUTCDateString);
+
+        if (isNaN(date.getTime())) {
+            throw new Error('Invalid date string');
+        }
+
+        const year = date.getUTCFullYear();
+        const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+        const day = String(date.getUTCDate()).padStart(2, '0');
+        const hours = String(date.getUTCHours()).padStart(2, '0');
+        const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+        const seconds = String(date.getUTCSeconds()).padStart(2, '0');
+
+        return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+    }
+
+    return { getUTCTimeRange, getTimeRange, convertToLocalUTC, convertToUTC };
 }

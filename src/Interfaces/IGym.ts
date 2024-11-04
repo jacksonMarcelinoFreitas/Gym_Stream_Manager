@@ -21,8 +21,8 @@ export interface IGym {
     customer: string,
     gymExternalId: string,
     active: boolean,
-    gymOpeningHoursResponse: IGymOpeningHours,
     channelResponse: IGymChannel | null
+    gymOpeningHoursResponse: IGymOpeningHours,
 }
 export interface IGymUpdateRequest {
     name: string;
@@ -38,6 +38,6 @@ export interface IGymCreateRequest {
     unit: string;
     timezone: number;
     customer: string,
-    gymOpeningHoursRequest: IGymOpeningHours;
     channelRequest: IGymChannel | null
+    gymOpeningHoursRequest: IGymOpeningHours;
 }
