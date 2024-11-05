@@ -1,3 +1,6 @@
+<img src="./src/Assets/cover.png" width="100%"/>
+
+
 # GymStream Manager
 This application has an interface for managing resources, users, gyms and simulations of people entering and leaving the gym.
 
