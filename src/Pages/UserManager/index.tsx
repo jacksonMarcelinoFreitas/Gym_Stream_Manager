@@ -31,7 +31,7 @@ const emptyUser: IListAllUsers = {
 
 export function UserAdmin() {
 
-    const { handleListAllGyms } = useGym()
+    const { handleListAllGymsService } = useGym()
     const { handleListAllUsersService, handleReleaseUserService, 
             handleDeleteUserService, handleActivateUserService, 
             handleEditUserService } = useUser()
@@ -82,7 +82,7 @@ export function UserAdmin() {
 
     useEffect(() => {
         async function fetchAllGymsData(){
-            const { data } = await handleListAllGyms({
+            const { data } = await handleListAllGymsService({
                 page: 0, 
                 size: 1000, 
                 sort: 'name,ASC',

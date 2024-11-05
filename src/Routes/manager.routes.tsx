@@ -1,8 +1,9 @@
+import { ResourceSetting } from '../Pages/ResourceSetting';
 import { SystemAdmin } from '../Pages/SystemManager';
-import { GymAdmin } from '../Pages/GymManager';
-import { UserAdmin } from '../Pages/UserManager';
 import { PrimeReactProvider } from 'primereact/api';
+import { UserAdmin } from '../Pages/UserManager';
 import { Routes, Route } from 'react-router-dom';
+import { GymAdmin } from '../Pages/GymManager';
 
 export function ManagerRoutes(){
     return(
@@ -12,9 +13,10 @@ export function ManagerRoutes(){
                 element={
                     <PrimeReactProvider>
                         <Routes>
+                            <Route path="resources" element={<ResourceSetting />} />
                             <Route path="system" element={<SystemAdmin />} />
-                            <Route path="gym" element={<GymAdmin />} />
                             <Route path="user" element={<UserAdmin />} />
+                            <Route path="gym" element={<GymAdmin />} />
                         </Routes>
                     </PrimeReactProvider>
                 }

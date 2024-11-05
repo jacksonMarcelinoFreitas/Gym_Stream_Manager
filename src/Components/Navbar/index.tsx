@@ -29,6 +29,11 @@ const items = [
         template:  Links('/admin/user', 'Usuários'),
         icon: 'pi-warehouse'
     },
+    {
+        label: 'Recursos',
+        template:  Links('/admin/resources', 'Recursos'),
+        icon: 'pi-warehouse'
+    },
 ];
 
 export const Navbar = () => {

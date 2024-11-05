@@ -212,7 +212,7 @@ export function GymAdmin() {
             setCreateGymDialog(false)
         }
 
-        setSubmitted(false)
+        // setSubmitted(false)
     }
 
     const openDeleteGymDialog = async (gymData: IGym) => {
@@ -236,6 +236,19 @@ export function GymAdmin() {
         </React.Fragment>
     );
 
+    const validateCreateForm = () => {
+        return Boolean(newDataGym.name && 
+            newDataGym.customer && 
+            newDataGym.gymOpeningHoursResponse.endOpeningHoursUTCMondayToFriday &&
+            newDataGym.gymOpeningHoursResponse.endOpeningHoursUTCSaturday &&
+            newDataGym.gymOpeningHoursResponse.endOpeningHoursUTCSunday && 
+            newDataGym.gymOpeningHoursResponse.startOpeningHoursUTCMondayToFriday &&
+            newDataGym.gymOpeningHoursResponse.startOpeningHoursUTCSaturday && 
+            newDataGym.gymOpeningHoursResponse.startOpeningHoursUTCSunday &&
+            newDataGym.channelResponse?.inputChannel &&
+            newDataGym.channelResponse?.outputChannel)
+    }
+
     const createGymDialogFooter = (
         <React.Fragment>
             <Button 
@@ -248,6 +261,7 @@ export function GymAdmin() {
                 label="Criar" 
                 icon="pi pi-check" 
                 onClick={handleSubmitCreateGym} 
+                disabled={!validateCreateForm()}
             />
         </React.Fragment>
     );
@@ -673,6 +687,7 @@ export function GymAdmin() {
                                 ...prevDataGym,
                                 timezone: e.value || 0
                             }))} 
+                            className={classNames({ 'p-invalid': submitted && !newDataGym.timezone })}
                         />
                     </div>
                     <div className="field">
@@ -694,6 +709,7 @@ export function GymAdmin() {
                             hourFormat="24"
                             onChange={(e) => handleTimeChange(e.value, 'startOpeningHoursUTCMondayToFriday')}
                             value={parseTimeStringToDate(newDataGym.gymOpeningHoursResponse.startOpeningHoursUTCMondayToFriday)}
+                            className={classNames({ 'p-invalid': submitted && !newDataGym.gymOpeningHoursResponse.startOpeningHoursUTCMondayToFriday})}
                         />
                     </div>
                     <div className="field">
@@ -704,6 +720,7 @@ export function GymAdmin() {
                             hourFormat="24"
                             onChange={(e) => handleTimeChange(e.value, 'endOpeningHoursUTCMondayToFriday')}
                             value={parseTimeStringToDate(newDataGym.gymOpeningHoursResponse.endOpeningHoursUTCMondayToFriday)}
+                            className={classNames({ 'p-invalid': submitted && !newDataGym.gymOpeningHoursResponse.endOpeningHoursUTCMondayToFriday})}
                         />
                     </div>
                     <div className="field">
@@ -714,6 +731,7 @@ export function GymAdmin() {
                             hourFormat="24"
                             onChange={(e) => handleTimeChange(e.value, 'startOpeningHoursUTCSaturday')}
                             value={parseTimeStringToDate(newDataGym.gymOpeningHoursResponse.startOpeningHoursUTCSaturday)}
+                            className={classNames({ 'p-invalid': submitted && !newDataGym.gymOpeningHoursResponse.startOpeningHoursUTCSaturday})}
                         />
                     </div>
 
@@ -725,6 +743,7 @@ export function GymAdmin() {
                             hourFormat="24"
                             onChange={(e) => handleTimeChange(e.value, 'endOpeningHoursUTCSaturday')}
                             value={parseTimeStringToDate(newDataGym.gymOpeningHoursResponse.endOpeningHoursUTCSaturday)}
+                            className={classNames({ 'p-invalid': submitted && !newDataGym.gymOpeningHoursResponse.endOpeningHoursUTCSaturday})}
                         />
                     </div>
 
@@ -736,6 +755,7 @@ export function GymAdmin() {
                             hourFormat="24"
                             onChange={(e) => handleTimeChange(e.value, 'startOpeningHoursUTCSunday')}
                             value={parseTimeStringToDate(newDataGym.gymOpeningHoursResponse.startOpeningHoursUTCSunday)}
+                            className={classNames({ 'p-invalid': submitted && !newDataGym.gymOpeningHoursResponse.startOpeningHoursUTCSunday})}
                         />
                     </div>
                     <div className="field">
@@ -746,6 +766,7 @@ export function GymAdmin() {
                             hourFormat="24"
                             onChange={(e) => handleTimeChange(e.value, 'endOpeningHoursUTCSunday')}
                             value={parseTimeStringToDate(newDataGym.gymOpeningHoursResponse.endOpeningHoursUTCSunday)}
+                            className={classNames({ 'p-invalid': submitted && !newDataGym.gymOpeningHoursResponse.endOpeningHoursUTCSunday})}
                         />
                     </div>
                     <div className="field">
