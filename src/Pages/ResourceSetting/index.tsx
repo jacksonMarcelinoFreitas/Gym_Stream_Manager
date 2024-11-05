@@ -94,7 +94,7 @@ export function ResourceSetting(){
     };
     
     return(
-        <>
+        <div className="flex flex-column gap-4 lg:min-width mx-8 my-4 h-full">
             <Navbar />
 
             <div className="card flex gap-8 mx-8 my-4 h-full">
@@ -173,6 +173,6 @@ export function ResourceSetting(){
                 message={<p>Você tem certeza que deseja excluir o recurso <span style={{ color: 'red', fontWeight: 'bold'}}>{ dataResource.name.toUpperCase() }</span> ?</p>}
             >
             </ConfirmDialog>
-        </>
+        </div>
     )
 }

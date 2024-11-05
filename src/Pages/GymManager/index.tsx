@@ -435,7 +435,6 @@ export function GymAdmin() {
     
 
     return (
-        <>
             <div className="flex flex-column gap-4 lg:min-width mx-8 my-4 h-full">
 
                 <Navbar />
@@ -807,7 +806,6 @@ export function GymAdmin() {
                 </ConfirmDialog>
                 
             </div>
-        </>
     );
 
 };
