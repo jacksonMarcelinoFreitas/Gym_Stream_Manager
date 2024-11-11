@@ -76,5 +76,38 @@ export const useTimeresources = () => {
         return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
     }
 
-    return { getUTCTimeRange, getTimeRange, convertToLocalUTC, convertToUTC };
+    const convertHourToUTC = (localHourString: string) => {
+        const [hours, minutes] = localHourString.split(':').map(Number);
+
+        if (isNaN(hours) || isNaN(minutes)) {
+            throw new Error('Invalid time string');
+        }
+
+        const localDate = new Date();
+        localDate.setHours(hours, minutes, 0, 0);
+
+        const utcHours = String(localDate.getUTCHours()).padStart(2, '0');
+        const utcMinutes = String(localDate.getUTCMinutes()).padStart(2, '0');
+
+        return `${utcHours}:${utcMinutes}`
+    }
+
+    //tentar deixar flexível 
+    const convertToLocalHour = (utcHourString: string): string => {
+        const [horas, minutos] = utcHourString.split(':').map(Number);
+
+        let novaHora = horas - 3;
+        const novosMinutos = minutos;
+
+        if (novaHora < 0) {
+            novaHora = 24 + novaHora;
+        } else if (novaHora >= 24) {
+            novaHora = novaHora - 24;
+        }
+
+        return `${novaHora.toString().padStart(2, '0')}:${novosMinutos.toString().padStart(2, '0')}`;
+
+    };
+
+    return { getUTCTimeRange, getTimeRange, convertToLocalUTC, convertToUTC, convertHourToUTC, convertToLocalHour};
 }

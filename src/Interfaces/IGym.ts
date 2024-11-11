@@ -1,6 +1,6 @@
 export interface IGymOpeningHours {
     endOpeningHoursUTCSunday: string,
-    gymOpeningHoursExternalId: string,
+    gymOpeningHoursExternalId?: string,
     startOpeningHoursUTCSunday: string,
     endOpeningHoursUTCSaturday: string,
     startOpeningHoursUTCSaturday: string,

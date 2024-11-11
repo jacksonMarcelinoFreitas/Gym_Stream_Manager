@@ -17,6 +17,7 @@ import { toast } from "react-toastify";
 import { Tag } from "primereact/tag";
 import { useGym } from "./Service"
 import React from "react";
+import { useTimeresources } from "../../Hooks";
 
 const emptyGym: IGym = {
     name: '',
@@ -45,6 +46,7 @@ export function GymAdmin() {
 
     const { handleEditGymService, handleListAllGymsService, handleDeleteGymService,
             handleCreateGymService, handleActivateGymService } = useGym()
+    const { convertHourToUTC, convertToLocalHour } = useTimeresources()
 
     const [submitted, setSubmitted] = useState(false);
     const [totalRecords, setTotalRecords] = useState(0);
@@ -102,7 +104,18 @@ export function GymAdmin() {
     }, [newDataGym.customer]);
 
     const openEditGymDialog = (gymData: IGym) => {
-        setDataGym({ ...gymData });
+        const gymOpeningHoursLocalUTCResponse = {
+            startOpeningHoursUTCMondayToFriday: convertToLocalHour(gymData.gymOpeningHoursResponse.startOpeningHoursUTCMondayToFriday),
+            endOpeningHoursUTCMondayToFriday: convertToLocalHour(gymData.gymOpeningHoursResponse.endOpeningHoursUTCMondayToFriday),
+            startOpeningHoursUTCSaturday: convertToLocalHour(gymData.gymOpeningHoursResponse.startOpeningHoursUTCSaturday),
+            endOpeningHoursUTCSaturday: convertToLocalHour(gymData.gymOpeningHoursResponse.endOpeningHoursUTCSaturday),
+            startOpeningHoursUTCSunday: convertToLocalHour(gymData.gymOpeningHoursResponse.startOpeningHoursUTCSunday),
+            endOpeningHoursUTCSunday: convertToLocalHour(gymData.gymOpeningHoursResponse.endOpeningHoursUTCSunday),
+        }
+        setDataGym({ 
+            ...gymData,
+            gymOpeningHoursResponse: gymOpeningHoursLocalUTCResponse
+        });
         setEditGymDialog(true);
     };
 
@@ -152,6 +165,14 @@ export function GymAdmin() {
 
     const handleSubmitEditGym = async () => {
         setSubmitted(true)
+        const editGymOpeningHoursUTCResponse = {
+            startOpeningHoursUTCMondayToFriday: convertHourToUTC(dataGym.gymOpeningHoursResponse.startOpeningHoursUTCMondayToFriday),
+            endOpeningHoursUTCMondayToFriday: convertHourToUTC(dataGym.gymOpeningHoursResponse.endOpeningHoursUTCMondayToFriday),
+            startOpeningHoursUTCSaturday: convertHourToUTC(dataGym.gymOpeningHoursResponse.startOpeningHoursUTCSaturday),
+            endOpeningHoursUTCSaturday: convertHourToUTC(dataGym.gymOpeningHoursResponse.endOpeningHoursUTCSaturday),
+            startOpeningHoursUTCSunday: convertHourToUTC(dataGym.gymOpeningHoursResponse.startOpeningHoursUTCSunday),
+            endOpeningHoursUTCSunday: convertHourToUTC(dataGym.gymOpeningHoursResponse.endOpeningHoursUTCSunday),
+        };
 
         const { data, status } = await handleEditGymService({
             name: dataGym.name,
@@ -159,8 +180,7 @@ export function GymAdmin() {
             timezone: dataGym.timezone,
             customer: dataGym.customer,
             gymExternalId: dataGym.gymExternalId,
-            gymOpeningHoursUpdateRequest: dataGym.gymOpeningHoursResponse,
-
+            gymOpeningHoursUpdateRequest: editGymOpeningHoursUTCResponse,
         })
 
         if(status == 201){
@@ -175,7 +195,11 @@ export function GymAdmin() {
                 );
                 if (index !== -1) {
                     const updatedData = [...prevData];
-                    updatedData[index] = updatedGym;
+                    updatedData[index] = {
+                        ...updatedData[index],
+                        ...updatedGym,
+                        channelResponse: updatedData[index].channelResponse
+                    };
                     return updatedData;
                 }
                 return prevData;
@@ -186,6 +210,15 @@ export function GymAdmin() {
     }
 
     const handleSubmitCreateGym = async () => {
+        const newGymOpeningHoursUTCResponse = {
+            startOpeningHoursUTCMondayToFriday: convertHourToUTC(newDataGym.gymOpeningHoursResponse.startOpeningHoursUTCMondayToFriday),
+            endOpeningHoursUTCMondayToFriday: convertHourToUTC(newDataGym.gymOpeningHoursResponse.endOpeningHoursUTCMondayToFriday),
+            startOpeningHoursUTCSaturday: convertHourToUTC(newDataGym.gymOpeningHoursResponse.startOpeningHoursUTCSaturday),
+            endOpeningHoursUTCSaturday: convertHourToUTC(newDataGym.gymOpeningHoursResponse.endOpeningHoursUTCSaturday),
+            startOpeningHoursUTCSunday: convertHourToUTC(newDataGym.gymOpeningHoursResponse.startOpeningHoursUTCSunday),
+            endOpeningHoursUTCSunday: convertHourToUTC(newDataGym.gymOpeningHoursResponse.endOpeningHoursUTCSunday),
+        };
+    
         setSubmitted(true)
 
         const { data, status } = await handleCreateGymService({
@@ -193,7 +226,7 @@ export function GymAdmin() {
             unit: newDataGym.unit,
             customer: newDataGym.customer,
             timezone: newDataGym.timezone,
-            gymOpeningHoursRequest: newDataGym.gymOpeningHoursResponse,
+            gymOpeningHoursRequest: newGymOpeningHoursUTCResponse,
             channelRequest: newDataGym.channelResponse
         })
 
@@ -212,7 +245,7 @@ export function GymAdmin() {
             setCreateGymDialog(false)
         }
 
-        // setSubmitted(false)
+        setSubmitted(false)
     }
 
     const openDeleteGymDialog = async (gymData: IGym) => {
@@ -435,377 +468,377 @@ export function GymAdmin() {
     
 
     return (
-            <div className="flex flex-column gap-4 lg:min-width mx-8 my-4 h-full">
+        <div className="flex flex-column gap-4 lg:min-width mx-8 my-4 h-full">
 
-                <Navbar />
+            <Navbar />
 
-                <DataTable
-                    lazy
-                    paginator
-                    scrollable 
-                    stripedRows
-                    sortOrder={-1}
-                    value={dataGyms}
-                    onPage={onPage}
-                    filters={filters}
-                    filterDelay={1000}
-                    onFilter={onFilter}
-                    scrollHeight="60vh"
-                    filterDisplay="row" 
-                    header={dataTableHeader} 
-                    first={lazyParams.first}
-                    rows={lazyParams.rows}
-                    totalRecords={totalRecords}
-                    dataKey="userGymExternalId" 
-                    rowsPerPageOptions={[10, 20]}
-                    emptyMessage="Nenhuma academia encontrada"
-                    currentPageReportTemplate="{first} to {last} of {totalRecords}" 
-                    paginatorLeft={<Button type="button" icon="pi pi-refresh" text />} 
-                    paginatorRight={<Button type="button" icon="pi pi-download" text />}
-                    paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-                >
-                    <Column 
-                        filter 
-                        field="name" 
-                        header="Nome" 
-                        showFilterMenu={false}
-                        filterPlaceholder="Buscar" 
-                        onFilterClear={clearFilters} 
-                        style={{ width: '200px' }}/>
-                    <Column 
-                        field="customer" 
-                        header="Customer" 
-                        showFilterMenu={false} 
-                        style={{ width: '200px' }}
-                        filter 
-                        filterPlaceholder="Buscar" 
+            <DataTable
+                lazy
+                paginator
+                scrollable 
+                stripedRows
+                sortOrder={-1}
+                value={dataGyms}
+                onPage={onPage}
+                filters={filters}
+                filterDelay={1000}
+                onFilter={onFilter}
+                scrollHeight="60vh"
+                filterDisplay="row" 
+                header={dataTableHeader} 
+                first={lazyParams.first}
+                rows={lazyParams.rows}
+                totalRecords={totalRecords}
+                dataKey="userGymExternalId" 
+                rowsPerPageOptions={[10, 20]}
+                emptyMessage="Nenhuma academia encontrada"
+                currentPageReportTemplate="{first} to {last} of {totalRecords}" 
+                paginatorLeft={<Button type="button" icon="pi pi-refresh" text />} 
+                paginatorRight={<Button type="button" icon="pi pi-download" text />}
+                paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+            >
+                <Column 
+                    filter 
+                    field="name" 
+                    header="Nome" 
+                    showFilterMenu={false}
+                    filterPlaceholder="Buscar" 
+                    onFilterClear={clearFilters} 
+                    style={{ width: '200px' }}/>
+                <Column 
+                    field="customer" 
+                    header="Customer" 
+                    showFilterMenu={false} 
+                    style={{ width: '200px' }}
+                    filter 
+                    filterPlaceholder="Buscar" 
+                />
+                <Column 
+                    filter 
+                    header="Status" 
+                    field="active" 
+                    align="center" 
+                    body={fieldActivateGym} 
+                    filterPlaceholder="Buscar" 
+                    showFilterMenu={false} 
+                    filterElement={statusRowFilterTemplate} 
+                    style={ {width: '200px', maxWidth: '200px'}}
+                />
+                <Column 
+                    header="Ações" 
+                    align="center" 
+                    body={actionBodyTemplate} 
+                    style={{ width: '500px' }}
+                />
+            </DataTable>
+
+            <Dialog 
+                modal
+                className="p-fluid" 
+                visible={editGymDialog} 
+                header="Editar academia" 
+                onHide={hideEditGymDialog}
+                style={{ width: '32rem' }} 
+                footer={editGymDialogFooter} 
+                breakpoints={{ '960px': '75vw', '641px': '90vw' }} 
+            >
+
+                <div className="field">
+                    <label htmlFor="name" className="font-bold">Nome</label>
+                    <InputText
+                        id="name"
+                        required
+                        autoFocus
+                        value={dataGym.name}
+                        onChange={(e) => onInputChange(e, 'name')} 
+                        className={classNames({ 'p-invalid': submitted && !dataGym.name })}
                     />
-                    <Column 
-                        filter 
-                        header="Status" 
-                        field="active" 
-                        align="center" 
-                        body={fieldActivateGym} 
-                        filterPlaceholder="Buscar" 
-                        showFilterMenu={false} 
-                        filterElement={statusRowFilterTemplate} 
-                        style={ {width: '200px', maxWidth: '200px'}}
+                </div>
+                <div className="field">
+                    <label htmlFor="customer" className="font-bold">Customer</label>
+                    <InputText
+                        required
+                        autoFocus
+                        id="customer"
+                        value={dataGym.customer}
+                        className={classNames({ 'p-invalid': submitted && !dataGym.customer })}
                     />
-                    <Column 
-                        header="Ações" 
-                        align="center" 
-                        body={actionBodyTemplate} 
-                        style={{ width: '500px' }}
+                </div> 
+                <div className="field">
+                    <label htmlFor="timezone" className="font-bold">Timezone</label>
+                    <InputNumber 
+                        max={12} 
+                        min={-12} 
+                        showButtons 
+                        mode="decimal" 
+                        value={dataGym.timezone} 
+                        inputId="minmax-buttons" 
+                        onValueChange={(e) => setDataGym((prevDataGym) => ({
+                            ...prevDataGym,
+                            timezone: e.value || 0
+                        }))} 
                     />
-                </DataTable>
+                </div>
+                <div className="field">
+                    <label htmlFor="unit" className="font-bold">Unit</label>
+                    <InputText
+                        id="unit"
+                        required
+                        autoFocus
+                        value={dataGym.unit}
+                        onChange={(e) => onInputChange(e, 'unit')} 
+                        className={classNames({ 'p-invalid': submitted && !dataGym.unit })}
+                    />
+                </div>
+                <div className="field">
+                    <label htmlFor="startOpeningHoursUTCMondayToFriday" className="font-bold">Horário de abertura: Segunda à Sexta</label>
+                    <Calendar
+                        showIcon
+                        timeOnly
+                        hourFormat="24"
+                        onChange={(e) => handleTimeChange(e.value, 'startOpeningHoursUTCMondayToFriday')}
+                        value={parseTimeStringToDate(dataGym.gymOpeningHoursResponse.startOpeningHoursUTCMondayToFriday)}
+                    />
+                </div>
+                <div className="field">
+                    <label htmlFor="endOpeningHoursUTCMondayToFriday" className="font-bold">Horário de fechamento: Segunda à Sexta</label>
+                    <Calendar
+                        showIcon
+                        timeOnly
+                        hourFormat="24"
+                        onChange={(e) => handleTimeChange(e.value, 'endOpeningHoursUTCMondayToFriday')}
+                        value={parseTimeStringToDate(dataGym.gymOpeningHoursResponse.endOpeningHoursUTCMondayToFriday)}
+                    />
+                </div>
+                <div className="field">
+                    <label htmlFor="startOpeningHoursUTCSaturday" className="font-bold">Horário de abertura: Sábado</label>
+                    <Calendar
+                        showIcon
+                        timeOnly
+                        hourFormat="24"
+                        onChange={(e) => handleTimeChange(e.value, 'startOpeningHoursUTCSaturday')}
+                        value={parseTimeStringToDate(dataGym.gymOpeningHoursResponse.startOpeningHoursUTCSaturday)}
+                    />
+                </div>
 
-                <Dialog 
-                    modal
-                    className="p-fluid" 
-                    visible={editGymDialog} 
-                    header="Editar academia" 
-                    onHide={hideEditGymDialog}
-                    style={{ width: '32rem' }} 
-                    footer={editGymDialogFooter} 
-                    breakpoints={{ '960px': '75vw', '641px': '90vw' }} 
-                >
+                <div className="field">
+                    <label htmlFor="endOpeningHoursUTCSaturday" className="font-bold">Horário de fechamento: Sábado</label>
+                    <Calendar
+                        showIcon
+                        timeOnly
+                        hourFormat="24"
+                        onChange={(e) => handleTimeChange(e.value, 'endOpeningHoursUTCSaturday')}
+                        value={parseTimeStringToDate(dataGym.gymOpeningHoursResponse.endOpeningHoursUTCSaturday)}
+                    />
+                </div>
 
-                    <div className="field">
-                        <label htmlFor="name" className="font-bold">Nome</label>
-                        <InputText
-                            id="name"
-                            required
-                            autoFocus
-                            value={dataGym.name}
-                            onChange={(e) => onInputChange(e, 'name')} 
-                            className={classNames({ 'p-invalid': submitted && !dataGym.name })}
-                        />
-                    </div>
-                    <div className="field">
-                        <label htmlFor="customer" className="font-bold">Customer</label>
-                        <InputText
-                            required
-                            autoFocus
-                            id="customer"
-                            value={dataGym.customer}
-                            className={classNames({ 'p-invalid': submitted && !dataGym.customer })}
-                        />
-                    </div> 
-                    <div className="field">
-                        <label htmlFor="timezone" className="font-bold">Timezone</label>
-                        <InputNumber 
-                            max={12} 
-                            min={-12} 
-                            showButtons 
-                            mode="decimal" 
-                            value={dataGym.timezone} 
-                            inputId="minmax-buttons" 
-                            onValueChange={(e) => setDataGym((prevDataGym) => ({
-                                ...prevDataGym,
-                                timezone: e.value || 0
-                            }))} 
-                        />
-                    </div>
-                    <div className="field">
-                        <label htmlFor="unit" className="font-bold">Unit</label>
-                        <InputText
-                            id="unit"
-                            required
-                            autoFocus
-                            value={dataGym.unit}
-                            onChange={(e) => onInputChange(e, 'unit')} 
-                            className={classNames({ 'p-invalid': submitted && !dataGym.unit })}
-                        />
-                    </div>
-                    <div className="field">
-                        <label htmlFor="startOpeningHoursUTCMondayToFriday" className="font-bold">Horário de abertura: Segunda à Sexta</label>
-                        <Calendar
-                            showIcon
-                            timeOnly
-                            hourFormat="24"
-                            onChange={(e) => handleTimeChange(e.value, 'startOpeningHoursUTCMondayToFriday')}
-                            value={parseTimeStringToDate(dataGym.gymOpeningHoursResponse.startOpeningHoursUTCMondayToFriday)}
-                        />
-                    </div>
-                    <div className="field">
-                        <label htmlFor="endOpeningHoursUTCMondayToFriday" className="font-bold">Horário de fechamento: Segunda à Sexta</label>
-                        <Calendar
-                            showIcon
-                            timeOnly
-                            hourFormat="24"
-                            onChange={(e) => handleTimeChange(e.value, 'endOpeningHoursUTCMondayToFriday')}
-                            value={parseTimeStringToDate(dataGym.gymOpeningHoursResponse.endOpeningHoursUTCMondayToFriday)}
-                        />
-                    </div>
-                    <div className="field">
-                        <label htmlFor="startOpeningHoursUTCSaturday" className="font-bold">Horário de abertura: Sábado</label>
-                        <Calendar
-                            showIcon
-                            timeOnly
-                            hourFormat="24"
-                            onChange={(e) => handleTimeChange(e.value, 'startOpeningHoursUTCSaturday')}
-                            value={parseTimeStringToDate(dataGym.gymOpeningHoursResponse.startOpeningHoursUTCSaturday)}
-                        />
-                    </div>
+                <div className="field">
+                    <label htmlFor="startOpeningHoursUTCSunday" className="font-bold">Horário de abertura: Domingo</label>
+                    <Calendar
+                        showIcon
+                        timeOnly
+                        hourFormat="24"
+                        onChange={(e) => handleTimeChange(e.value, 'startOpeningHoursUTCSunday')}
+                        value={parseTimeStringToDate(dataGym.gymOpeningHoursResponse.startOpeningHoursUTCSunday)}
+                    />
+                </div>
+                <div className="field">
+                    <label htmlFor="endOpeningHoursUTCSunday" className="font-bold">Horário de fechamento: Domingo</label>
+                    <Calendar
+                        showIcon
+                        timeOnly
+                        hourFormat="24"
+                        onChange={(e) => handleTimeChange(e.value, 'endOpeningHoursUTCSunday')}
+                        value={parseTimeStringToDate(dataGym.gymOpeningHoursResponse.endOpeningHoursUTCSunday)}
+                    />
+                </div>
+                <div className="field">
+                    <label htmlFor="inputChannel" className="font-bold">Input Channel</label>
+                    <InputText
+                        id="inputChannel"
+                        autoFocus
+                        value={dataGym.channelResponse?.inputChannel}
+                        className={classNames({ 'p-invalid': submitted && !dataGym.channelResponse?.inputChannel})}
+                    />
+                </div>
+                <div className="field">
+                    <label htmlFor="inputChannel" className="font-bold">Output Channel</label>
+                    <InputText
+                        id="outputChannel"
+                        required
+                        autoFocus
+                        value={dataGym.channelResponse?.outputChannel}
+                        className={classNames({ 'p-invalid': submitted && !dataGym.channelResponse?.outputChannel })}
+                    />
+                </div>
+            </Dialog>
 
-                    <div className="field">
-                        <label htmlFor="endOpeningHoursUTCSaturday" className="font-bold">Horário de fechamento: Sábado</label>
-                        <Calendar
-                            showIcon
-                            timeOnly
-                            hourFormat="24"
-                            onChange={(e) => handleTimeChange(e.value, 'endOpeningHoursUTCSaturday')}
-                            value={parseTimeStringToDate(dataGym.gymOpeningHoursResponse.endOpeningHoursUTCSaturday)}
-                        />
-                    </div>
+            <Dialog 
+                modal 
+                className="p-fluid" 
+                header="Criar academia" 
+                style={{ width: '32rem' }} 
+                visible={createGymDialog} 
+                onHide={hideCreateGymDialog}
+                footer={createGymDialogFooter} 
+                breakpoints={{ '960px': '75vw', '641px': '90vw' }} 
+            >
 
-                    <div className="field">
-                        <label htmlFor="startOpeningHoursUTCSunday" className="font-bold">Horário de abertura: Domingo</label>
-                        <Calendar
-                            showIcon
-                            timeOnly
-                            hourFormat="24"
-                            onChange={(e) => handleTimeChange(e.value, 'startOpeningHoursUTCSunday')}
-                            value={parseTimeStringToDate(dataGym.gymOpeningHoursResponse.startOpeningHoursUTCSunday)}
-                        />
-                    </div>
-                    <div className="field">
-                        <label htmlFor="endOpeningHoursUTCSunday" className="font-bold">Horário de fechamento: Domingo</label>
-                        <Calendar
-                            showIcon
-                            timeOnly
-                            hourFormat="24"
-                            onChange={(e) => handleTimeChange(e.value, 'endOpeningHoursUTCSunday')}
-                            value={parseTimeStringToDate(dataGym.gymOpeningHoursResponse.endOpeningHoursUTCSunday)}
-                        />
-                    </div>
-                    <div className="field">
-                        <label htmlFor="inputChannel" className="font-bold">Input Channel</label>
-                        <InputText
-                            id="inputChannel"
-                            autoFocus
-                            value={dataGym.channelResponse?.inputChannel}
-                            className={classNames({ 'p-invalid': submitted && !dataGym.channelResponse?.inputChannel})}
-                        />
-                    </div>
-                    <div className="field">
-                        <label htmlFor="inputChannel" className="font-bold">Output Channel</label>
-                        <InputText
-                            id="outputChannel"
-                            required
-                            autoFocus
-                            value={dataGym.channelResponse?.outputChannel}
-                            className={classNames({ 'p-invalid': submitted && !dataGym.channelResponse?.outputChannel })}
-                        />
-                    </div>
-                </Dialog>
+                <div className="field">
+                    <label htmlFor="name" className="font-bold">Nome</label>
+                    <InputText
+                        id="name"
+                        required
+                        autoFocus
+                        value={newDataGym.name}
+                        onChange={(e) => onInputChange(e, 'name')} 
+                        className={classNames({ 'p-invalid': submitted && !newDataGym.name })}
+                    />
+                </div>
+                <div className="field">
+                    <label htmlFor="customer" className="font-bold">Customer</label>
+                    <InputText
+                        required
+                        autoFocus
+                        id="customer"
+                        value={newDataGym.customer}
+                        onChange={(e) => onInputChange(e, 'customer')} 
+                        className={classNames({ 'p-invalid': submitted && !newDataGym.customer })}
+                    />
+                </div> 
+                <div className="field">
+                    <label htmlFor="timezone" className="font-bold">Timezone</label>
+                    <InputNumber 
+                        max={12} 
+                        min={-12} 
+                        showButtons 
+                        mode="decimal" 
+                        value={newDataGym.timezone} 
+                        inputId="minmax-buttons" 
+                        onValueChange={(e) => setDataGym((prevDataGym) => ({
+                            ...prevDataGym,
+                            timezone: e.value || 0
+                        }))} 
+                        className={classNames({ 'p-invalid': submitted && !newDataGym.timezone })}
+                    />
+                </div>
+                <div className="field">
+                    <label htmlFor="unit" className="font-bold">Unit</label>
+                    <InputText
+                        id="unit"
+                        required
+                        autoFocus
+                        value={newDataGym.unit}
+                        onChange={(e) => onInputChange(e, 'unit')} 
+                        className={classNames({ 'p-invalid': submitted && !newDataGym.unit })}
+                    />
+                </div>
+                <div className="field">
+                    <label htmlFor="startOpeningHoursUTCMondayToFriday" className="font-bold">Horário de abertura: Segunda à Sexta</label>
+                    <Calendar
+                        showIcon
+                        timeOnly
+                        hourFormat="24"
+                        onChange={(e) => handleTimeChange(e.value, 'startOpeningHoursUTCMondayToFriday')}
+                        value={parseTimeStringToDate(newDataGym.gymOpeningHoursResponse.startOpeningHoursUTCMondayToFriday)}
+                        className={classNames({ 'p-invalid': submitted && !newDataGym.gymOpeningHoursResponse.startOpeningHoursUTCMondayToFriday})}
+                    />
+                </div>
+                <div className="field">
+                    <label htmlFor="endOpeningHoursUTCMondayToFriday" className="font-bold">Horário de fechamento: Segunda à Sexta</label>
+                    <Calendar
+                        showIcon
+                        timeOnly
+                        hourFormat="24"
+                        onChange={(e) => handleTimeChange(e.value, 'endOpeningHoursUTCMondayToFriday')}
+                        value={parseTimeStringToDate(newDataGym.gymOpeningHoursResponse.endOpeningHoursUTCMondayToFriday)}
+                        className={classNames({ 'p-invalid': submitted && !newDataGym.gymOpeningHoursResponse.endOpeningHoursUTCMondayToFriday})}
+                    />
+                </div>
+                <div className="field">
+                    <label htmlFor="startOpeningHoursUTCSaturday" className="font-bold">Horário de abertura: Sábado</label>
+                    <Calendar
+                        showIcon
+                        timeOnly
+                        hourFormat="24"
+                        onChange={(e) => handleTimeChange(e.value, 'startOpeningHoursUTCSaturday')}
+                        value={parseTimeStringToDate(newDataGym.gymOpeningHoursResponse.startOpeningHoursUTCSaturday)}
+                        className={classNames({ 'p-invalid': submitted && !newDataGym.gymOpeningHoursResponse.startOpeningHoursUTCSaturday})}
+                    />
+                </div>
 
-                <Dialog 
-                    modal 
-                    className="p-fluid" 
-                    header="Criar academia" 
-                    style={{ width: '32rem' }} 
-                    visible={createGymDialog} 
-                    onHide={hideCreateGymDialog}
-                    footer={createGymDialogFooter} 
-                    breakpoints={{ '960px': '75vw', '641px': '90vw' }} 
-                >
+                <div className="field">
+                    <label htmlFor="endOpeningHoursUTCSaturday" className="font-bold">Horário de fechamento: Sábado</label>
+                    <Calendar
+                        showIcon
+                        timeOnly
+                        hourFormat="24"
+                        onChange={(e) => handleTimeChange(e.value, 'endOpeningHoursUTCSaturday')}
+                        value={parseTimeStringToDate(newDataGym.gymOpeningHoursResponse.endOpeningHoursUTCSaturday)}
+                        className={classNames({ 'p-invalid': submitted && !newDataGym.gymOpeningHoursResponse.endOpeningHoursUTCSaturday})}
+                    />
+                </div>
 
-                    <div className="field">
-                        <label htmlFor="name" className="font-bold">Nome</label>
-                        <InputText
-                            id="name"
-                            required
-                            autoFocus
-                            value={newDataGym.name}
-                            onChange={(e) => onInputChange(e, 'name')} 
-                            className={classNames({ 'p-invalid': submitted && !newDataGym.name })}
-                        />
-                    </div>
-                    <div className="field">
-                        <label htmlFor="customer" className="font-bold">Customer</label>
-                        <InputText
-                            required
-                            autoFocus
-                            id="customer"
-                            value={newDataGym.customer}
-                            onChange={(e) => onInputChange(e, 'customer')} 
-                            className={classNames({ 'p-invalid': submitted && !newDataGym.customer })}
-                        />
-                    </div> 
-                    <div className="field">
-                        <label htmlFor="timezone" className="font-bold">Timezone</label>
-                        <InputNumber 
-                            max={12} 
-                            min={-12} 
-                            showButtons 
-                            mode="decimal" 
-                            value={newDataGym.timezone} 
-                            inputId="minmax-buttons" 
-                            onValueChange={(e) => setDataGym((prevDataGym) => ({
-                                ...prevDataGym,
-                                timezone: e.value || 0
-                            }))} 
-                            className={classNames({ 'p-invalid': submitted && !newDataGym.timezone })}
-                        />
-                    </div>
-                    <div className="field">
-                        <label htmlFor="unit" className="font-bold">Unit</label>
-                        <InputText
-                            id="unit"
-                            required
-                            autoFocus
-                            value={newDataGym.unit}
-                            onChange={(e) => onInputChange(e, 'unit')} 
-                            className={classNames({ 'p-invalid': submitted && !newDataGym.unit })}
-                        />
-                    </div>
-                    <div className="field">
-                        <label htmlFor="startOpeningHoursUTCMondayToFriday" className="font-bold">Horário de abertura: Segunda à Sexta</label>
-                        <Calendar
-                            showIcon
-                            timeOnly
-                            hourFormat="24"
-                            onChange={(e) => handleTimeChange(e.value, 'startOpeningHoursUTCMondayToFriday')}
-                            value={parseTimeStringToDate(newDataGym.gymOpeningHoursResponse.startOpeningHoursUTCMondayToFriday)}
-                            className={classNames({ 'p-invalid': submitted && !newDataGym.gymOpeningHoursResponse.startOpeningHoursUTCMondayToFriday})}
-                        />
-                    </div>
-                    <div className="field">
-                        <label htmlFor="endOpeningHoursUTCMondayToFriday" className="font-bold">Horário de fechamento: Segunda à Sexta</label>
-                        <Calendar
-                            showIcon
-                            timeOnly
-                            hourFormat="24"
-                            onChange={(e) => handleTimeChange(e.value, 'endOpeningHoursUTCMondayToFriday')}
-                            value={parseTimeStringToDate(newDataGym.gymOpeningHoursResponse.endOpeningHoursUTCMondayToFriday)}
-                            className={classNames({ 'p-invalid': submitted && !newDataGym.gymOpeningHoursResponse.endOpeningHoursUTCMondayToFriday})}
-                        />
-                    </div>
-                    <div className="field">
-                        <label htmlFor="startOpeningHoursUTCSaturday" className="font-bold">Horário de abertura: Sábado</label>
-                        <Calendar
-                            showIcon
-                            timeOnly
-                            hourFormat="24"
-                            onChange={(e) => handleTimeChange(e.value, 'startOpeningHoursUTCSaturday')}
-                            value={parseTimeStringToDate(newDataGym.gymOpeningHoursResponse.startOpeningHoursUTCSaturday)}
-                            className={classNames({ 'p-invalid': submitted && !newDataGym.gymOpeningHoursResponse.startOpeningHoursUTCSaturday})}
-                        />
-                    </div>
+                <div className="field">
+                    <label htmlFor="startOpeningHoursUTCSunday" className="font-bold">Horário de abertura: Domingo</label>
+                    <Calendar
+                        showIcon
+                        timeOnly
+                        hourFormat="24"
+                        onChange={(e) => handleTimeChange(e.value, 'startOpeningHoursUTCSunday')}
+                        value={parseTimeStringToDate(newDataGym.gymOpeningHoursResponse.startOpeningHoursUTCSunday)}
+                        className={classNames({ 'p-invalid': submitted && !newDataGym.gymOpeningHoursResponse.startOpeningHoursUTCSunday})}
+                    />
+                </div>
+                <div className="field">
+                    <label htmlFor="endOpeningHoursUTCSunday" className="font-bold">Horário de fechamento: Domingo</label>
+                    <Calendar
+                        showIcon
+                        timeOnly
+                        hourFormat="24"
+                        onChange={(e) => handleTimeChange(e.value, 'endOpeningHoursUTCSunday')}
+                        value={parseTimeStringToDate(newDataGym.gymOpeningHoursResponse.endOpeningHoursUTCSunday)}
+                        className={classNames({ 'p-invalid': submitted && !newDataGym.gymOpeningHoursResponse.endOpeningHoursUTCSunday})}
+                    />
+                </div>
+                <div className="field">
+                    <label htmlFor="inputChannel" className="font-bold">Input Channel</label>
+                    <InputText
+                        required
+                        autoFocus
+                        id="inputChannel"
+                        value={newDataGym.channelResponse?.inputChannel || `input-channel-${newDataGym.customer.toLowerCase()}`}
+                        className={classNames({ 'p-invalid': submitted && !newDataGym.channelResponse?.inputChannel })}
+                    />
+                </div> 
+                <div className="field">
+                    <label htmlFor="outputChannel" className="font-bold">Output Channel</label>
+                    <InputText
+                        required
+                        autoFocus
+                        id="outputChannel"
+                        value={`output-channel-${newDataGym.customer.toLowerCase()}`}
+                        className={classNames({ 'p-invalid': submitted && !newDataGym.channelResponse?.outputChannel })}
+                    />
+                </div> 
 
-                    <div className="field">
-                        <label htmlFor="endOpeningHoursUTCSaturday" className="font-bold">Horário de fechamento: Sábado</label>
-                        <Calendar
-                            showIcon
-                            timeOnly
-                            hourFormat="24"
-                            onChange={(e) => handleTimeChange(e.value, 'endOpeningHoursUTCSaturday')}
-                            value={parseTimeStringToDate(newDataGym.gymOpeningHoursResponse.endOpeningHoursUTCSaturday)}
-                            className={classNames({ 'p-invalid': submitted && !newDataGym.gymOpeningHoursResponse.endOpeningHoursUTCSaturday})}
-                        />
-                    </div>
+            </Dialog>
 
-                    <div className="field">
-                        <label htmlFor="startOpeningHoursUTCSunday" className="font-bold">Horário de abertura: Domingo</label>
-                        <Calendar
-                            showIcon
-                            timeOnly
-                            hourFormat="24"
-                            onChange={(e) => handleTimeChange(e.value, 'startOpeningHoursUTCSunday')}
-                            value={parseTimeStringToDate(newDataGym.gymOpeningHoursResponse.startOpeningHoursUTCSunday)}
-                            className={classNames({ 'p-invalid': submitted && !newDataGym.gymOpeningHoursResponse.startOpeningHoursUTCSunday})}
-                        />
-                    </div>
-                    <div className="field">
-                        <label htmlFor="endOpeningHoursUTCSunday" className="font-bold">Horário de fechamento: Domingo</label>
-                        <Calendar
-                            showIcon
-                            timeOnly
-                            hourFormat="24"
-                            onChange={(e) => handleTimeChange(e.value, 'endOpeningHoursUTCSunday')}
-                            value={parseTimeStringToDate(newDataGym.gymOpeningHoursResponse.endOpeningHoursUTCSunday)}
-                            className={classNames({ 'p-invalid': submitted && !newDataGym.gymOpeningHoursResponse.endOpeningHoursUTCSunday})}
-                        />
-                    </div>
-                    <div className="field">
-                        <label htmlFor="inputChannel" className="font-bold">Input Channel</label>
-                        <InputText
-                            required
-                            autoFocus
-                            id="inputChannel"
-                            value={newDataGym.channelResponse?.inputChannel || `input-channel-${newDataGym.customer.toLowerCase()}`}
-                            className={classNames({ 'p-invalid': submitted && !newDataGym.channelResponse?.inputChannel })}
-                        />
-                    </div> 
-                    <div className="field">
-                        <label htmlFor="outputChannel" className="font-bold">Output Channel</label>
-                        <InputText
-                            required
-                            autoFocus
-                            id="outputChannel"
-                            value={`output-channel-${newDataGym.customer.toLowerCase()}`}
-                            className={classNames({ 'p-invalid': submitted && !newDataGym.channelResponse?.outputChannel })}
-                        />
-                    </div> 
-
-                </Dialog>
- 
-                <ConfirmDialog
-                    icon="pi pi-trash"
-                    group="declarative"
-                    header="Confirmation"
-                    visible={deleteGymDialog}
-                    style={{ width: '25vw'}}
-                    accept={handleSubmitDeleteGym}
-                    onHide={() => setDeleteGymDialog(false)}
-                    reject={() => setDeleteGymDialog(false)}
-                    breakpoints={{ '1100px': '75vw', '960px': '100vw' }}
-                    message={<p>Você tem certeza que deseja excluir <span style={{ color: 'red', fontWeight: 'bold'}}>{ dataGym.name.toUpperCase() }</span> ?</p>}
-                >
-                </ConfirmDialog>
-                
-            </div>
+            <ConfirmDialog
+                icon="pi pi-trash"
+                group="declarative"
+                header="Confirmation"
+                visible={deleteGymDialog}
+                style={{ width: '25vw'}}
+                accept={handleSubmitDeleteGym}
+                onHide={() => setDeleteGymDialog(false)}
+                reject={() => setDeleteGymDialog(false)}
+                breakpoints={{ '1100px': '75vw', '960px': '100vw' }}
+                message={<p>Você tem certeza que deseja excluir <span style={{ color: 'red', fontWeight: 'bold'}}>{ dataGym.name.toUpperCase() }</span> ?</p>}
+            >
+            </ConfirmDialog>
+            
+        </div>
     );
 
 };
